@@ -1,71 +1,102 @@
-# yet-another-nuget-package-manager README
+# Yet Another NuGet Package Manager
 
-This is the README for your extension "yet-another-nuget-package-manager". After writing up a brief description, we recommend including the following sections.
+Yet Another NuGet Package Manager is a Visual Studio Code extension that provides a lightweight, integrated experience
+for browsing, adding, updating, and removing NuGet packages from .NET projects directly inside VS Code.
+
+Features
+-+- Browse and search NuGet packages with descriptions, tags, and download stats
+- View package metadata (authors, project URL, license expression or license URL)
+- Add packages to the current project or by package id
+- Update installed packages (choose versions and upgrade inline)
+- Remove packages from the selected project
+- View security vulnerabilities and release notes when available
+
+# Yet Another NuGet Package Manager
+
+Yet Another NuGet Package Manager is a Visual Studio Code extension that provides a lightweight, integrated experience
+for browsing, adding, updating, and removing NuGet packages from .NET projects directly inside VS Code.
+
+> Note: This extension integrates a React-based webview for a focused package-management UI and communicates with the
+> extension backend to run `dotnet` CLI operations. Native `confirm()` dialogs are not available inside VS Code webviews;
+> the extension uses in-webview UI for confirmations where needed.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- Browse and search NuGet packages from NuGet.org
+- View rich package metadata: authors, description, tags, download counts, project URL, license expression or license URL
+- Add packages to a selected project (choose version or use latest)
+- Update installed packages and choose target versions
+- Remove packages from the selected project
+- View release notes, deprecation notices, and vulnerability information when available
+- Multi-project support: select a project (.csproj) from a dropdown
+- Theme-aware styling and responsive layout for smaller screens
 
-For example if there is an image subfolder under your extension project workspace:
+## Quick Start
 
-\!\[feature X\]\(images/feature-x.png\)
+1. Open a workspace containing at least one `.csproj` file.
+2. Open the Command Palette (Ctrl+Shift+P) and run `Open NuGet Package Manager`, or right-click a `.csproj` in Explorer and choose the command.
+3. Select a project (if multiple). Browse or search for packages, then use the right-hand details pane to add, update, or remove packages.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## How it Works
 
-## Requirements
+- The extension runs a TypeScript-based backend that executes `dotnet` CLI commands for add/update/remove operations.
+- The UI is a React webview that communicates with the backend using the VS Code webview messaging API.
+- Package metadata and versions are fetched from the NuGet V3 APIs; some requests may be cached for better performance.
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## Commands
 
-## Extension Settings
+- `yet-another-nuget-package-manager.openPackageManager` — Open the package manager UI
+- `yet-another-nuget-package-manager.refresh` — Refresh package list
+- `yet-another-nuget-package-manager.updatePackageInline` — Update a package inline
+- `yet-another-nuget-package-manager.searchAndAddPackage` — Open search/add modal
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Development
 
-For example:
+Install dependencies and build the extension and webview:
 
-This extension contributes the following settings:
+```bash
+bun install
+bun run build
+```
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+Watch mode (for iterative development):
 
-## Known Issues
+```bash
+bun run watch
+```
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Run the extension in the VS Code debugger (F5) to test in a development host window.
+
+## Testing
+
+Create a small test project to try the extension:
+
+```bash
+dotnet new console -o TestProject
+cd TestProject
+code .
+```
+
+Open the folder in VS Code, run the extension (F5), and test adding/updating/removing packages.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.0.4
+- Documentation updates and small UX improvements
 
-### 1.0.0
+### 0.0.3
+- Searchable Add Package modal with real-time NuGet search
+- Rich package details (authors, descriptions, downloads, URLs, licenses)
+- Release notes and deprecation notices in details view
+- Multi-project support and custom NuGet sources
 
-Initial release of ...
+### 0.0.2
+- CodeLens integration for inline package status and quick actions
+- Vulnerability warnings and pre-release support
 
-### 1.0.1
+### 0.0.1
+- Initial release: package discovery, add/update/remove operations, file watching
 
-Fixed issue #.
+## License
 
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+MIT

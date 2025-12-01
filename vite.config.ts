@@ -6,31 +6,26 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [wasm(), topLevelAwait(), react()],
+  build: {
+    minify: 'esbuild',
+    outDir: 'dist',
+    cssCodeSplit: false,
+    rollupOptions: {
+      input: {
+        webview: path.resolve(__dirname, 'src/webview/index.tsx'),
+      },
+      output: {
+        entryFileNames: '[name].js',
+        assetFileNames: '[name][extname]',
+        format: 'iife',
+        sourcemap: false,
+      },
+    },
+  },
   esbuild: {
     minifyIdentifiers: true,
     minifySyntax: true,
     minifyWhitespace: true,
-  },
-  build: {
-    target: 'esnext',
-    lib: {
-      entry: {
-        extension: path.resolve(__dirname, 'src/extension/extension.ts'),
-        webview: path.resolve(__dirname, 'src/webview/index.tsx'),
-      },
-      formats: ['es'],
-    },
-    outDir: 'dist',
-    minify: 'esbuild',
-    rollupOptions: {
-      external: ['vscode'],
-      output: {
-        entryFileNames: '[name].js',
-      },
-    },
-  },
-  worker: {
-    plugins: () => [wasm(), topLevelAwait()],
   },
   resolve: {
     alias: {

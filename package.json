@@ -2,48 +2,97 @@
   "name": "yet-another-nuget-package-manager",
   "displayName": "Yet Another Nuget Package Manager",
   "description": "Yet Another Nuget Package Manager for Visual Studio Code",
-  "version": "0.0.1",
+  "version": "0.0.4",
+  "publisher": "popiazaza",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/popiazaza/Yet-Another-Nuget-Package-Manager"
+  },
+  "license": "MIT",
   "engines": {
-    "vscode": "^1.105.0"
+    "vscode": "^1.100.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
-  "main": "./out/extension.js",
+  "activationEvents": [
+    "workspaceContains:**/*.csproj"
+  ],
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "yet-another-nuget-package-manager.helloWorld",
-        "title": "Hello World"
+        "command": "yet-another-nuget-package-manager.openPackageManager",
+        "title": "Open NuGet Package Manager"
+      },
+      {
+        "command": "yet-another-nuget-package-manager.refresh",
+        "title": "Refresh Packages"
+      },
+      {
+        "command": "yet-another-nuget-package-manager.updatePackageInline",
+        "title": "Update NuGet Package"
+      },
+      {
+        "command": "yet-another-nuget-package-manager.openNugetPage",
+        "title": "View on NuGet.org"
+      },
+      {
+        "command": "yet-another-nuget-package-manager.selectPackageVersion",
+        "title": "Select NuGet Package Version"
+      },
+      {
+        "command": "yet-another-nuget-package-manager.searchAndAddPackage",
+        "title": "Search and Add NuGet Package"
+      },
+      {
+        "command": "yet-another-nuget-package-manager.showVulnerabilities",
+        "title": "Show NuGet Package Vulnerabilities"
+      },
+      {
+        "command": "yet-another-nuget-package-manager.upgradeAllPackages",
+        "title": "Upgrade All NuGet Packages"
       }
-    ]
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "yet-another-nuget-package-manager.openPackageManager",
+          "when": "resourceFilename =~ /\\.csproj$/",
+          "group": "1_modification"
+        }
+      ]
+    }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
+    "vscode:prepublish": "npm run build",
+    "build": "rimraf dist && vite build && tsc -p tsconfig.extension.json",
+    "build:webview": "vite build",
+    "build:extension": "tsc -p tsconfig.extension.json",
+    "watch": "concurrently \"tsc -p tsconfig.extension.json --watch\" \"vite build --watch\"",
+    "pretest": "npm run build && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
-    "@types/node": "^22.19.0",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
-    "@types/vscode": "^1.105.0",
+    "@types/node": "^22.19.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@types/vscode": "^1.100.0",
     "@types/xml2js": "^0.4.14",
-    "@typescript-eslint/eslint-plugin": "^8.46.3",
-    "@typescript-eslint/parser": "^8.46.3",
+    "@typescript-eslint/eslint-plugin": "^8.48.0",
+    "@typescript-eslint/parser": "^8.48.0",
     "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
+    "concurrently": "^9.2.1",
     "eslint": "^9.39.1",
+    "rimraf": "^6.1.2",
     "typescript": "^5.9.3",
-    "vite": "^7.2.2"
+    "vite": "^7.2.4"
   },
   "dependencies": {
-    "@vitejs/plugin-react-swc": "^4.2.1",
+    "@vitejs/plugin-react-swc": "^4.2.2",
     "esbuild": "^0.25.12",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

@@ -1,11 +1,36 @@
+# Editor and workspace
 .vscode/**
 .vscode-test/**
+
+# Source - not required in VSIX (we ship compiled `dist`)
 src/**
-.gitignore
-.yarnrc
+
+# Node and package manager files
+node_modules/**
+bun.lock
+pnpm-lock.yaml
+package-lock.json
+npm-debug.log
+yarn.lock
+
+# Dev and build configs
 vsc-extension-quickstart.md
 **/tsconfig.json
 **/eslint.config.mjs
+
+# Tests and test runners
+test/**
+.vscode-test/**
+
+# Source maps and typescript
 **/*.map
 **/*.ts
-**/.vscode-test.*
+
+# Logs
+*.log
+
+# Keep documentation and license
+!README.md
+!readme.md
+!LICENSE.md
+!changelog.md

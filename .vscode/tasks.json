@@ -4,16 +4,43 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "npm",
-			"script": "watch",
-			"problemMatcher": "$tsc-watch",
-			"isBackground": true,
+			"label": "build",
+			"type": "shell",
+			"command": "bun",
+			"args": ["run", "build"],
+			"problemMatcher": ["$tsc"],
 			"presentation": {
-				"reveal": "never"
+				"reveal": "silent",
+				"echo": false
 			},
 			"group": {
 				"kind": "build",
 				"isDefault": true
+			}
+		},
+		{
+			"label": "watch",
+			"type": "shell",
+			"command": "bun",
+			"args": ["run", "build", "--watch"],
+			"isBackground": true,
+			"problemMatcher": {
+				"pattern": {
+					"regexp": "^.*$",
+					"line": 1
+				},
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "^.*transforming.*",
+					"endsPattern": "^.*built in.*ms.*"
+				}
+			},
+			"presentation": {
+				"reveal": "silent",
+				"echo": false
+			},
+			"group": {
+				"kind": "build"
 			}
 		}
 	]
