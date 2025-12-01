@@ -3,7 +3,7 @@
   "displayName": "Yet Another Nuget Package Manager",
   "description": "Yet Another Nuget Package Manager for Visual Studio Code",
   "version": "0.0.4",
-  "publisher": "popiazaza",
+  "publisher": "KaruhutKomol",
   "repository": {
     "type": "git",
     "url": "https://github.com/popiazaza/Yet-Another-Nuget-Package-Manager"
