@@ -2,7 +2,7 @@
   "name": "yet-another-nuget-package-manager",
   "displayName": "Yet Another Nuget Package Manager",
   "description": "Yet Another Nuget Package Manager for Visual Studio Code",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "KaruhutKomol",
   "repository": {
     "type": "git",
@@ -66,10 +66,10 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run build",
-    "build": "rimraf dist && vite build && tsc -p tsconfig.extension.json",
+    "build": "rimraf dist && vite build && npm run build:extension",
     "build:webview": "vite build",
-    "build:extension": "tsc -p tsconfig.extension.json",
-    "watch": "concurrently \"tsc -p tsconfig.extension.json --watch\" \"vite build --watch\"",
+    "build:extension": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify",
+    "watch": "concurrently \"npm run build:extension -- --watch\" \"vite build --watch\"",
     "pretest": "npm run build && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test"
