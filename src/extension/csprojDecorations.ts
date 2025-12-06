@@ -30,6 +30,7 @@ interface PackageVersionInfo {
   line: number;
   range: vscode.Range;
   isChecking: boolean;
+  isUpdating: boolean;
 }
 
 const documentPackageCache = new Map<string, PackageVersionInfo[]>();
@@ -60,8 +61,7 @@ function parsePackageReferences(document: vscode.TextDocument): PackageVersionIn
         vulnerabilities: [],
         line: lineIndex,
         range: new vscode.Range(lineIndex, 0, lineIndex, lineEndPosition),
-        isChecking: true,
-      });
+        isChecking: true,        isUpdating: false,      });
     }
   }
 
@@ -197,11 +197,11 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
         pkg.latestPrereleaseVersion !== pkg.currentVersion &&
         compareVersions(pkg.latestPrereleaseVersion, pkg.latestVersion) > 0;
       
-      if (hasStableUpdate) {
+      if (hasStableUpdate && !pkg.isUpdating) {
         // Update to stable version CodeLens
         codeLenses.push(
           new vscode.CodeLens(range, {
-            title: `📦 Update to ${pkg.latestVersion}`,
+            title: `⬆️ Update to ${pkg.latestVersion}`,
             command: 'yet-another-nuget-package-manager.updatePackageInline',
             arguments: [document.uri.fsPath, pkg.packageName, pkg.latestVersion],
             tooltip: `Update ${pkg.packageName} from ${pkg.currentVersion} to ${pkg.latestVersion}`,
@@ -239,7 +239,7 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
             tooltip: `View ${pkg.packageName} on NuGet.org`,
           })
         );
-      } else if (pkg.latestVersion && isVersionUpToDate(pkg.currentVersion, pkg.latestVersion)) {
+      } else if (pkg.latestVersion && isVersionUpToDate(pkg.currentVersion, pkg.latestVersion) && !pkg.isUpdating) {
         // Show "up to date" indicator for packages that are current
         codeLenses.push(
           new vscode.CodeLens(range, {
@@ -289,6 +289,15 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
             tooltip: `Checking for updates to ${pkg.packageName}`,
           })
         );
+      } else if (pkg.isUpdating) {
+        // Show updating indicator
+        codeLenses.push(
+          new vscode.CodeLens(range, {
+            title: '⏳ Updating...',
+            command: '',
+            tooltip: `Updating ${pkg.packageName}`,
+          })
+        );
       }
     }
 
@@ -333,6 +342,19 @@ async function handleUpdatePackageInline(
   packageName: string,
   version: string
 ): Promise<void> {
+  // Set updating flag and refresh CodeLenses
+  const documentUri = vscode.Uri.file(projectPath).toString();
+  const packages = documentPackageCache.get(documentUri);
+  if (packages) {
+    const pkg = packages.find(p => p.packageName === packageName);
+    if (pkg) {
+      pkg.isUpdating = true;
+      if (codeLensProvider) {
+        codeLensProvider.refresh();
+      }
+    }
+  }
+
   try {
     await vscode.window.withProgress(
       {
@@ -367,6 +389,17 @@ async function handleUpdatePackageInline(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     vscode.window.showErrorMessage(`Error updating package: ${errorMessage}`);
+  } finally {
+    // Reset updating flag and refresh CodeLenses
+    if (packages) {
+      const pkg = packages.find(p => p.packageName === packageName);
+      if (pkg) {
+        pkg.isUpdating = false;
+        if (codeLensProvider) {
+          codeLensProvider.refresh();
+        }
+      }
+    }
   }
 }
 

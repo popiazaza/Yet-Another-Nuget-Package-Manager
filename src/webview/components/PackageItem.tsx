@@ -8,20 +8,20 @@ interface PackageItemProps {
 }
 
 /**
- * Get severity icon
+ * Get severity text
  */
-function getSeverityIcon(severity: number): string {
+function getSeverityText(severity: number): string {
   switch (severity) {
     case 0:
-      return '⚪'; // Low
+      return '(Low)';
     case 1:
-      return '🟡'; // Medium
+      return '(Medium)';
     case 2:
-      return '🟠'; // High
+      return '(High)';
     case 3:
-      return '🔴'; // Critical
+      return '(Critical)';
     default:
-      return '⚠️';
+      return '';
   }
 }
 
@@ -55,6 +55,9 @@ const PackageItem: React.FC<PackageItemProps> = ({ package: pkg, onShowDetails, 
 
   // Get update info
   const hasUpdate = pkg.updateAvailable && pkg.latestVersion;
+  const updateTypeText = pkg.updateType ? (
+    pkg.updateType === 'major' ? 'Major' : pkg.updateType === 'minor' ? 'Minor' : pkg.updateType === 'patch' ? 'Patch' : 'Update'
+  ) : '';
 
   return (
     <div 
@@ -99,17 +102,22 @@ const PackageItem: React.FC<PackageItemProps> = ({ package: pkg, onShowDetails, 
           {pkg.metadata?.totalDownloads ? (
             <span className="downloads">{formatDownloads(pkg.metadata.totalDownloads)} downloads</span>
           ) : null}
-          {hasUpdate && (
-            <span className={`upgrade-badge ${pkg.updateType || 'update'}`}>
-              ⬆ {pkg.latestVersion}
-            </span>
-          )}
-          {hasVulnerabilities && (
-            <span className="vulnerability-badge">
-              {getSeverityIcon(maxSeverity)} {pkg.vulnerabilities!.length} vulnerabilit{pkg.vulnerabilities!.length === 1 ? 'y' : 'ies'}
-            </span>
-          )}
         </div>
+      </div>
+      <div className="search-result-badges">
+        {hasUpdate ? (
+          <span className={`upgrade-badge ${pkg.updateType || 'update'}`} title={`Update available: ${pkg.latestVersion}`}>
+            ⬆️ {updateTypeText}
+          </span>
+        ) : (
+          <span className="status-uptodate" title="Package is up to date">✅ Latest</span>
+        )}
+
+        {hasVulnerabilities && (
+          <span className="vulnerability-badge" title={`${pkg.vulnerabilities!.length} vulnerability(ies)`}>
+            ⚠️ {pkg.vulnerabilities!.length} {getSeverityText(maxSeverity)}
+          </span>
+        )}
       </div>
     </div>
   );

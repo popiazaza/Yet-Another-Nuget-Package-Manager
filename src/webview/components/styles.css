@@ -1561,8 +1561,28 @@ body {
 }
 
 .vulnerability-badge {
+  /* Match upgrade-badge styling so both have the same look and feel */
   font-size: 11px;
-  color: #ff6b6b;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+  color: var(--update-major);
+  background-color: rgba(255, 107, 107, 0.15);
+}
+
+.search-result-badges {
+  /* Anchor badges to the right and align to the stats row */
+  margin-left: 12px;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Smaller modifier to display icon-only badge when needed */
+.badge-icon-only {
+  padding: 4px 6px;
 }
 
 /* Selected Package View */
