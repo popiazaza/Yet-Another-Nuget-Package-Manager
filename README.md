@@ -5,6 +5,7 @@ for browsing, adding, updating, and removing NuGet packages from .NET projects d
 
 Features
 -+- Browse and search NuGet packages with descriptions, tags, and download stats
+
 - View package metadata (authors, project URL, license expression or license URL)
 - Add packages to the current project or by package id
 - Update installed packages (choose versions and upgrade inline)
@@ -82,19 +83,23 @@ Open the folder in VS Code, run the extension (F5), and test adding/updating/rem
 ## Release Notes
 
 ### 0.0.4
+
 - Documentation updates and small UX improvements
 
 ### 0.0.3
+
 - Searchable Add Package modal with real-time NuGet search
 - Rich package details (authors, descriptions, downloads, URLs, licenses)
 - Release notes and deprecation notices in details view
 - Multi-project support and custom NuGet sources
 
 ### 0.0.2
+
 - CodeLens integration for inline package status and quick actions
 - Vulnerability warnings and pre-release support
 
 ### 0.0.1
+
 - Initial release: package discovery, add/update/remove operations, file watching
 
 ## License

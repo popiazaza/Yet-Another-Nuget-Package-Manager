@@ -3,7 +3,7 @@
  * Fetches latest versions of packages from NuGet.org V3 API
  */
 
-import { PackageMetadata, NuGetSource, UpdateType } from '../types';
+import { PackageMetadata, NuGetSource, UpdateType } from "../types";
 
 /**
  * Cache entry for package versions
@@ -31,10 +31,11 @@ const metadataCache = new Map<string, MetadataCacheEntry>();
 const CACHE_TTL_MS = 60 * 60 * 1000;
 
 // NuGet.org V3 API endpoints
-const NUGET_API_BASE = 'https://api.nuget.org/v3-flatcontainer';
-const NUGET_SEARCH_API = 'https://azuresearch-usnc.nuget.org/query';
-const NUGET_SERVICE_INDEX = 'https://api.nuget.org/v3/index.json';
-const NUGET_REGISTRATION_BASE = 'https://api.nuget.org/v3/registration5-gz-semver2';
+const NUGET_API_BASE = "https://api.nuget.org/v3-flatcontainer";
+const NUGET_SEARCH_API = "https://azuresearch-usnc.nuget.org/query";
+const NUGET_SERVICE_INDEX = "https://api.nuget.org/v3/index.json";
+const NUGET_REGISTRATION_BASE =
+  "https://api.nuget.org/v3/registration5-gz-semver2";
 
 /**
  * Vulnerability information for a package
@@ -86,7 +87,7 @@ export async function searchPackages(
   query: string,
   take: number = 20,
   includePrerelease: boolean = false,
-  source?: NuGetSource
+  source?: NuGetSource,
 ): Promise<NuGetSearchResult[]> {
   if (!query || query.trim().length === 0) {
     return [];
@@ -98,7 +99,7 @@ export async function searchPackages(
       q: query.trim(),
       take: take.toString(),
       prerelease: includePrerelease.toString(),
-      semVerLevel: '2.0.0',
+      semVerLevel: "2.0.0",
     });
 
     const response = await fetch(`${searchUrl}?${params}`);
@@ -127,7 +128,7 @@ export async function searchPackages(
     return (data.data || []).map((item) => ({
       id: item.id,
       version: item.version,
-      description: item.description || '',
+      description: item.description || "",
       authors: item.authors || [],
       totalDownloads: item.totalDownloads || 0,
       verified: item.verified || false,
@@ -153,10 +154,10 @@ export async function searchPackages(
  */
 export async function getPackageMetadata(
   packageId: string,
-  version?: string
+  version?: string,
 ): Promise<PackageMetadata | null> {
-  const cacheKey = `${packageId.toLowerCase()}:${version || 'latest'}`;
-  
+  const cacheKey = `${packageId.toLowerCase()}:${version || "latest"}`;
+
   // Check cache first
   const cached = metadataCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
@@ -165,7 +166,7 @@ export async function getPackageMetadata(
 
   try {
     // Get version to fetch if not specified
-    const targetVersion = version || await getLatestVersion(packageId);
+    const targetVersion = version || (await getLatestVersion(packageId));
     if (!targetVersion) {
       return null;
     }
@@ -173,7 +174,7 @@ export async function getPackageMetadata(
     // Fetch from NuGet registration API for detailed metadata
     const registrationUrl = `${NUGET_REGISTRATION_BASE}/${packageId.toLowerCase()}/${targetVersion.toLowerCase()}.json`;
     const response = await fetch(registrationUrl, {
-      headers: { 'Accept-Encoding': 'gzip' }
+      headers: { "Accept-Encoding": "gzip" },
     });
 
     if (!response.ok) {
@@ -181,7 +182,7 @@ export async function getPackageMetadata(
       return await getPackageMetadataFromSearch(packageId, targetVersion);
     }
 
-    const data = await response.json() as {
+    const data = (await response.json()) as {
       catalogEntry?: {
         id: string;
         version: string;
@@ -214,9 +215,13 @@ export async function getPackageMetadata(
     const metadata: PackageMetadata = {
       id: entry.id || packageId,
       version: entry.version || targetVersion,
-      description: entry.description || '',
-      authors: entry.authors ? entry.authors.split(',').map(a => a.trim()) : [],
-      owners: entry.owners ? entry.owners.split(',').map(o => o.trim()) : undefined,
+      description: entry.description || "",
+      authors: entry.authors
+        ? entry.authors.split(",").map((a) => a.trim())
+        : [],
+      owners: entry.owners
+        ? entry.owners.split(",").map((o) => o.trim())
+        : undefined,
       projectUrl: entry.projectUrl,
       licenseUrl: entry.licenseUrl,
       iconUrl: entry.iconUrl,
@@ -231,7 +236,9 @@ export async function getPackageMetadata(
     // Enrich with data from search API (downloads, verified status)
     try {
       const searchResults = await searchPackages(packageId, 1, true);
-      const searchMatch = searchResults.find(r => r.id.toLowerCase() === packageId.toLowerCase());
+      const searchMatch = searchResults.find(
+        (r) => r.id.toLowerCase() === packageId.toLowerCase(),
+      );
       if (searchMatch) {
         metadata.totalDownloads = searchMatch.totalDownloads;
         metadata.verified = searchMatch.verified;
@@ -268,12 +275,14 @@ export async function getPackageMetadata(
  */
 async function getPackageMetadataFromSearch(
   packageId: string,
-  version?: string
+  version?: string,
 ): Promise<PackageMetadata | null> {
   try {
     const results = await searchPackages(packageId, 1, true);
-    const match = results.find(r => r.id.toLowerCase() === packageId.toLowerCase());
-    
+    const match = results.find(
+      (r) => r.id.toLowerCase() === packageId.toLowerCase(),
+    );
+
     if (!match) {
       return null;
     }
@@ -298,9 +307,12 @@ async function getPackageMetadataFromSearch(
 /**
  * Determine the update type between two versions
  */
-export function getUpdateType(currentVersion: string, newVersion: string): UpdateType {
+export function getUpdateType(
+  currentVersion: string,
+  newVersion: string,
+): UpdateType {
   if (!newVersion || currentVersion === newVersion) {
-    return 'none';
+    return "none";
   }
 
   const current = parseVersion(currentVersion);
@@ -308,30 +320,30 @@ export function getUpdateType(currentVersion: string, newVersion: string): Updat
 
   // Check if new version is prerelease
   if (updated.prerelease && !current.prerelease) {
-    return 'prerelease';
+    return "prerelease";
   }
 
   // Compare major versions
   if ((updated.parts[0] || 0) > (current.parts[0] || 0)) {
-    return 'major';
+    return "major";
   }
 
   // Compare minor versions
   if ((updated.parts[1] || 0) > (current.parts[1] || 0)) {
-    return 'minor';
+    return "minor";
   }
 
   // Compare patch versions
   if ((updated.parts[2] || 0) > (current.parts[2] || 0)) {
-    return 'patch';
+    return "patch";
   }
 
   // Prerelease updates
   if (current.prerelease && updated.prerelease) {
-    return 'prerelease';
+    return "prerelease";
   }
 
-  return 'patch';
+  return "patch";
 }
 
 /**
@@ -339,24 +351,28 @@ export function getUpdateType(currentVersion: string, newVersion: string): Updat
  * Prerelease versions contain a hyphen (e.g., 1.0.0-preview, 1.0.0-beta.1)
  */
 function isPrerelease(version: string): boolean {
-  return version.includes('-');
+  return version.includes("-");
 }
 
 /**
  * Parse a version string into its components
  * Returns { major, minor, patch, prerelease }
  */
-function parseVersion(version: string): { parts: number[]; prerelease: string | null } {
+function parseVersion(version: string): {
+  parts: number[];
+  prerelease: string | null;
+} {
   // Split on hyphen to separate version from prerelease tag
-  const [versionPart, ...prereleaseParts] = version.split('-');
-  const prerelease = prereleaseParts.length > 0 ? prereleaseParts.join('-') : null;
-  
+  const [versionPart, ...prereleaseParts] = version.split("-");
+  const prerelease =
+    prereleaseParts.length > 0 ? prereleaseParts.join("-") : null;
+
   // Parse numeric parts, handling non-numeric segments
-  const parts = versionPart.split('.').map((p) => {
+  const parts = versionPart.split(".").map((p) => {
     const num = parseInt(p, 10);
     return isNaN(num) ? 0 : num;
   });
-  
+
   return { parts, prerelease };
 }
 
@@ -368,7 +384,7 @@ function parseVersion(version: string): { parts: number[]; prerelease: string | 
 export function compareVersions(a: string, b: string): number {
   const parsedA = parseVersion(a);
   const parsedB = parseVersion(b);
-  
+
   // Compare numeric parts first
   const maxLength = Math.max(parsedA.parts.length, parsedB.parts.length);
   for (let i = 0; i < maxLength; i++) {
@@ -378,7 +394,7 @@ export function compareVersions(a: string, b: string): number {
       return partA - partB;
     }
   }
-  
+
   // If numeric parts are equal, stable version wins over prerelease
   // e.g., 10.0.0 > 10.0.0-preview.7
   if (parsedA.prerelease === null && parsedB.prerelease !== null) {
@@ -387,12 +403,12 @@ export function compareVersions(a: string, b: string): number {
   if (parsedA.prerelease !== null && parsedB.prerelease === null) {
     return -1; // a is prerelease, b is stable -> b wins
   }
-  
+
   // Both are prereleases or both are stable - compare prerelease strings
   if (parsedA.prerelease && parsedB.prerelease) {
     return parsedA.prerelease.localeCompare(parsedB.prerelease);
   }
-  
+
   return 0;
 }
 
@@ -458,9 +474,9 @@ export async function getPackageVersions(packageId: string): Promise<string[]> {
 export async function getLatestVersion(packageId: string): Promise<string> {
   const versions = await getPackageVersions(packageId);
   if (versions.length === 0) {
-    return '';
+    return "";
   }
-  
+
   // Find the first stable version (versions are already sorted with stable first)
   const stableVersion = versions.find((v) => !isPrerelease(v));
   return stableVersion || versions[0];
@@ -471,15 +487,17 @@ export async function getLatestVersion(packageId: string): Promise<string> {
  * @param packageId - The NuGet package ID
  * @returns Promise with latest prerelease version string, or empty string if not found
  */
-export async function getLatestPrereleaseVersion(packageId: string): Promise<string> {
+export async function getLatestPrereleaseVersion(
+  packageId: string,
+): Promise<string> {
   const versions = await getPackageVersions(packageId);
   if (versions.length === 0) {
-    return '';
+    return "";
   }
-  
+
   // Find the first prerelease version
   const prereleaseVersion = versions.find((v) => isPrerelease(v));
-  return prereleaseVersion || '';
+  return prereleaseVersion || "";
 }
 
 /**
@@ -494,7 +512,9 @@ export function isPrereleaseVersion(version: string): boolean {
  * @param packageIds - Array of package IDs
  * @returns Promise with map of packageId -> latestVersion
  */
-export async function getLatestVersions(packageIds: string[]): Promise<Map<string, string>> {
+export async function getLatestVersions(
+  packageIds: string[],
+): Promise<Map<string, string>> {
   const results = new Map<string, string>();
 
   const promises = packageIds.map(async (id) => {
@@ -542,50 +562,59 @@ export function getCacheStats(): { size: number; entries: string[] } {
 /**
  * Fetch vulnerability data from NuGet.org
  */
-async function fetchVulnerabilityData(): Promise<Map<string, VulnerabilityInfo[]>> {
+async function fetchVulnerabilityData(): Promise<
+  Map<string, VulnerabilityInfo[]>
+> {
   const vulnerabilities = new Map<string, VulnerabilityInfo[]>();
 
   try {
     // Get service index to find vulnerability endpoint
     const serviceIndexResponse = await fetch(NUGET_SERVICE_INDEX);
     if (!serviceIndexResponse.ok) {
-      throw new Error(`Failed to fetch service index: ${serviceIndexResponse.status}`);
+      throw new Error(
+        `Failed to fetch service index: ${serviceIndexResponse.status}`,
+      );
     }
 
     const serviceIndex = (await serviceIndexResponse.json()) as {
-      resources?: Array<{ '@type': string; '@id': string }>;
+      resources?: Array<{ "@type": string; "@id": string }>;
     };
 
     // Find VulnerabilityInfo resource
     const vulnResource = serviceIndex.resources?.find(
-      (r) => r['@type'] === 'VulnerabilityInfo/6.7.0'
+      (r) => r["@type"] === "VulnerabilityInfo/6.7.0",
     );
 
     if (!vulnResource) {
-      console.log('VulnerabilityInfo resource not found in service index');
+      console.log("VulnerabilityInfo resource not found in service index");
       return vulnerabilities;
     }
 
     // Fetch vulnerability index
-    const indexResponse = await fetch(vulnResource['@id']);
+    const indexResponse = await fetch(vulnResource["@id"]);
     if (!indexResponse.ok) {
-      throw new Error(`Failed to fetch vulnerability index: ${indexResponse.status}`);
+      throw new Error(
+        `Failed to fetch vulnerability index: ${indexResponse.status}`,
+      );
     }
 
     const vulnIndex = (await indexResponse.json()) as Array<{
-      '@name': string;
-      '@id': string;
-      '@updated': string;
+      "@name": string;
+      "@id": string;
+      "@updated": string;
     }>;
 
     // Fetch all vulnerability pages
     const pagePromises = vulnIndex.map(async (page) => {
       try {
-        const pageResponse = await fetch(page['@id']);
+        const pageResponse = await fetch(page["@id"]);
         if (!pageResponse.ok) {
           return null;
         }
-        return (await pageResponse.json()) as Record<string, VulnerabilityInfo[]>;
+        return (await pageResponse.json()) as Record<
+          string,
+          VulnerabilityInfo[]
+        >;
       } catch {
         return null;
       }
@@ -619,7 +648,7 @@ async function fetchVulnerabilityData(): Promise<Map<string, VulnerabilityInfo[]
  */
 export async function getVulnerabilities(
   packageId: string,
-  version: string
+  version: string,
 ): Promise<VulnerabilityInfo[]> {
   // Check cache
   if (
@@ -648,15 +677,15 @@ export async function getVulnerabilities(
 function isVersionInRange(version: string, range: string): boolean {
   // Parse range - NuGet uses interval notation: (, ), [, ]
   // Examples: "(, 2.0.0)", "[1.0.0, 2.0.0)", "(1.0.0, )"
-  
+
   const rangeMatch = range.match(/^([\[\(])([^,]*),\s*([^\]\)]*)([\]\)])$/);
   if (!rangeMatch) {
     return false;
   }
 
   const [, minBracket, minVersion, maxVersion, maxBracket] = rangeMatch;
-  const minInclusive = minBracket === '[';
-  const maxInclusive = maxBracket === ']';
+  const minInclusive = minBracket === "[";
+  const maxInclusive = maxBracket === "]";
 
   // Check minimum version
   if (minVersion.trim()) {
@@ -683,15 +712,15 @@ function isVersionInRange(version: string, range: string): boolean {
 export function getSeverityLabel(severity: number): string {
   switch (severity) {
     case 0:
-      return 'Low';
+      return "Low";
     case 1:
-      return 'Medium';
+      return "Medium";
     case 2:
-      return 'High';
+      return "High";
     case 3:
-      return 'Critical';
+      return "Critical";
     default:
-      return 'Unknown';
+      return "Unknown";
   }
 }
 
@@ -701,14 +730,14 @@ export function getSeverityLabel(severity: number): string {
 export function getSeverityEmoji(severity: number): string {
   switch (severity) {
     case 0:
-      return '🟡'; // Low
+      return "🟡"; // Low
     case 1:
-      return '🟠'; // Medium
+      return "🟠"; // Medium
     case 2:
-      return '🔴'; // High
+      return "🔴"; // High
     case 3:
-      return '⛔'; // Critical
+      return "⛔"; // Critical
     default:
-      return '⚠️';
+      return "⚠️";
   }
 }

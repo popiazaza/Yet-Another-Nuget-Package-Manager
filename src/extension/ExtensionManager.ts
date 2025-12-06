@@ -3,13 +3,27 @@
  * Handles lifecycle, communication, and operations
  */
 
-import * as vscode from 'vscode';
-import { PackageReference, PackageWithLatest, WebviewMessage, ProjectInfo } from '../types';
-import { WebviewManager } from './webviewManager';
-import { CsprojFileWatcher } from './fileWatcher';
-import { parseCsproj, findCsprojFiles } from './csprojParser';
-import { getLatestVersions, getLatestPrereleaseVersion, getUpdateType, getVulnerabilities, searchPackages, getPackageMetadata, compareVersions, isPrereleaseVersion } from './nugetApi';
-import { addPackage, removePackage, updatePackage } from './dotnetCli';
+import * as vscode from "vscode";
+import {
+  PackageReference,
+  PackageWithLatest,
+  WebviewMessage,
+  ProjectInfo,
+} from "../types";
+import { WebviewManager } from "./webviewManager";
+import { CsprojFileWatcher } from "./fileWatcher";
+import { parseCsproj, findCsprojFiles } from "./csprojParser";
+import {
+  getLatestVersions,
+  getLatestPrereleaseVersion,
+  getUpdateType,
+  getVulnerabilities,
+  searchPackages,
+  getPackageMetadata,
+  compareVersions,
+  isPrereleaseVersion,
+} from "./nugetApi";
+import { addPackage, removePackage, updatePackage } from "./dotnetCli";
 
 export class ExtensionManager {
   private webviewManager: WebviewManager;
@@ -35,19 +49,21 @@ export class ExtensionManager {
     await this.discoverProjects();
 
     if (this.allProjects.length === 0) {
-      console.log('No .csproj files found in workspace');
+      console.log("No .csproj files found in workspace");
       return;
     }
 
     // Default to first project
     this.currentProjectPath = this.allProjects[0].path;
-    console.log(`Found ${this.allProjects.length} project(s), using: ${this.currentProjectPath}`);
+    console.log(
+      `Found ${this.allProjects.length} project(s), using: ${this.currentProjectPath}`,
+    );
 
     // Set up file watcher
     this.fileWatcher = new CsprojFileWatcher();
     this.fileWatcher.watch(async (projectPath) => {
       if (projectPath === this.currentProjectPath) {
-        console.log('Project file changed, refreshing...');
+        console.log("Project file changed, refreshing...");
         await this.refreshPackageList();
       }
     });
@@ -64,16 +80,16 @@ export class ExtensionManager {
     }
 
     const projects: ProjectInfo[] = [];
-    
+
     for (const folder of workspaceFolders) {
       const csprojFiles = await findCsprojFiles(folder.uri.fsPath);
-      
+
       for (const filePath of csprojFiles) {
         const parts = filePath.split(/[\\/]/);
-        const name = parts[parts.length - 1] || 'Unknown Project';
+        const name = parts[parts.length - 1] || "Unknown Project";
         projects.push({
           path: filePath,
-          name: name.replace('.csproj', ''),
+          name: name.replace(".csproj", ""),
           packages: [],
         });
       }
@@ -89,7 +105,7 @@ export class ExtensionManager {
     // If a file was clicked, use it directly
     if (clickedFile) {
       const filePath = clickedFile.fsPath;
-      if (filePath.endsWith('.csproj')) {
+      if (filePath.endsWith(".csproj")) {
         this.currentProjectPath = filePath;
         console.log(`Using clicked .csproj file: ${filePath}`);
       }
@@ -105,17 +121,17 @@ export class ExtensionManager {
 
     if (!this.currentProjectPath) {
       vscode.window.showErrorMessage(
-        'No .csproj file found in workspace. Please open a .NET project folder.'
+        "No .csproj file found in workspace. Please open a .NET project folder.",
       );
       return;
     }
-    
+
     // Set up file watching if not already done
     if (!this.fileWatcher) {
       this.fileWatcher = new CsprojFileWatcher();
       this.fileWatcher.watch(async (filePath) => {
         if (filePath === this.currentProjectPath) {
-          console.log('Project file changed, refreshing...');
+          console.log("Project file changed, refreshing...");
           await this.refreshPackageList();
         }
       });
@@ -147,13 +163,16 @@ export class ExtensionManager {
     }
 
     try {
-      this.webviewManager.sendLoading('Loading packages...');
+      this.webviewManager.sendLoading("Loading packages...");
 
       // Parse the .csproj file
       const parseResult = await parseCsproj(this.currentProjectPath);
 
       if (parseResult.error) {
-        this.webviewManager.sendError('Failed to parse project file', parseResult.error);
+        this.webviewManager.sendError(
+          "Failed to parse project file",
+          parseResult.error,
+        );
         return;
       }
 
@@ -162,7 +181,7 @@ export class ExtensionManager {
 
       // Fetch latest versions and metadata for all packages
       if (this.currentPackages.length > 0) {
-        this.webviewManager.sendLoading('Fetching package information...');
+        this.webviewManager.sendLoading("Fetching package information...");
 
         const packageNames = this.currentPackages.map((p) => p.name);
         const latestVersions = await getLatestVersions(packageNames);
@@ -170,53 +189,73 @@ export class ExtensionManager {
         // Fetch prerelease versions, vulnerabilities, and metadata in parallel
         await Promise.all(
           this.currentPackages.map(async (pkg) => {
-            const latest = latestVersions.get(pkg.name) || '';
+            const latest = latestVersions.get(pkg.name) || "";
             pkg.latestVersion = latest;
-            pkg.isUpdateAvailable = !!latest && latest !== pkg.currentVersion && compareVersions(latest, pkg.currentVersion) > 0;
-            
+            pkg.isUpdateAvailable =
+              !!latest &&
+              latest !== pkg.currentVersion &&
+              compareVersions(latest, pkg.currentVersion) > 0;
+
             // Determine update type
             if (pkg.isUpdateAvailable && latest) {
               pkg.updateType = getUpdateType(pkg.currentVersion, latest);
             }
 
             // Get prerelease version if newer than stable
-            const prereleaseVersion = await getLatestPrereleaseVersion(pkg.name);
-            if (prereleaseVersion && compareVersions(prereleaseVersion, latest) > 0) {
+            const prereleaseVersion = await getLatestPrereleaseVersion(
+              pkg.name,
+            );
+            if (
+              prereleaseVersion &&
+              compareVersions(prereleaseVersion, latest) > 0
+            ) {
               pkg.prereleaseVersion = prereleaseVersion;
             }
 
             // Get vulnerabilities
-            const vulns = await getVulnerabilities(pkg.name, pkg.currentVersion);
+            const vulns = await getVulnerabilities(
+              pkg.name,
+              pkg.currentVersion,
+            );
             if (vulns.length > 0) {
               pkg.vulnerabilities = vulns;
             }
 
             // Get metadata (authors, description, etc.)
-            const metadata = await getPackageMetadata(pkg.name, pkg.currentVersion);
+            const metadata = await getPackageMetadata(
+              pkg.name,
+              pkg.currentVersion,
+            );
             if (metadata) {
               pkg.metadata = metadata;
             }
-          })
+          }),
         );
       }
 
       // Send updated list to webview
-      const packageListForWebview: PackageWithLatest[] = this.currentPackages.map((pkg) => ({
-        name: pkg.name,
-        currentVersion: pkg.currentVersion,
-        latestVersion: pkg.latestVersion || '',
-        updateAvailable: pkg.isUpdateAvailable ?? false,
-        updateType: pkg.updateType,
-        metadata: pkg.metadata,
-        vulnerabilities: pkg.vulnerabilities,
-        prereleaseVersion: pkg.prereleaseVersion,
-      }));
+      const packageListForWebview: PackageWithLatest[] =
+        this.currentPackages.map((pkg) => ({
+          name: pkg.name,
+          currentVersion: pkg.currentVersion,
+          latestVersion: pkg.latestVersion || "",
+          updateAvailable: pkg.isUpdateAvailable ?? false,
+          updateType: pkg.updateType,
+          metadata: pkg.metadata,
+          vulnerabilities: pkg.vulnerabilities,
+          prereleaseVersion: pkg.prereleaseVersion,
+        }));
 
-      this.webviewManager.updatePackageList(packageListForWebview, this.currentProjectPath, this.allProjects);
+      this.webviewManager.updatePackageList(
+        packageListForWebview,
+        this.currentProjectPath,
+        this.allProjects,
+      );
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       console.error(`Error refreshing package list: ${errorMessage}`);
-      this.webviewManager.sendError('Error loading packages', errorMessage);
+      this.webviewManager.sendError("Error loading packages", errorMessage);
     }
   }
 
@@ -226,65 +265,91 @@ export class ExtensionManager {
   private async handleWebviewMessage(message: WebviewMessage): Promise<void> {
     try {
       switch (message.command) {
-        case 'refresh':
+        case "refresh":
           await this.refreshPackageList();
           break;
 
-        case 'addPackage':
-          await this.handleAddPackage(message.packageName, message.version, message.projectPath);
+        case "addPackage":
+          await this.handleAddPackage(
+            message.packageName,
+            message.version,
+            message.projectPath,
+          );
           break;
 
-        case 'removePackage':
-          await this.handleRemovePackage(message.packageName, message.projectPath);
+        case "removePackage":
+          await this.handleRemovePackage(
+            message.packageName,
+            message.projectPath,
+          );
           break;
 
-        case 'updatePackage':
-          await this.handleUpdatePackage(message.packageName, message.version, message.projectPath);
+        case "updatePackage":
+          await this.handleUpdatePackage(
+            message.packageName,
+            message.version,
+            message.projectPath,
+          );
           break;
 
-        case 'searchPackages':
-          await this.handleSearchPackages(message.query, message.includePrerelease);
+        case "searchPackages":
+          await this.handleSearchPackages(
+            message.query,
+            message.includePrerelease,
+          );
           break;
 
-        case 'getPackageMetadata':
+        case "getPackageMetadata":
           await this.handleGetPackageMetadata(message.packageName);
           break;
 
-        case 'getPackageVersions':
+        case "getPackageVersions":
           await this.handleGetPackageVersions(message.packageName);
           break;
 
-        case 'selectProject':
+        case "selectProject":
           await this.handleSelectProject(message.projectPath);
           break;
 
-        case 'upgradeAllPackages':
+        case "upgradeAllPackages":
           await this.handleUpgradeAllPackages(message.mode);
           break;
 
         default:
-          console.warn('Unknown command received from webview:', String(message));
+          console.warn(
+            "Unknown command received from webview:",
+            String(message),
+          );
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       console.error(`Error handling webview message: ${errorMessage}`);
-      this.webviewManager.sendError('Error processing command', errorMessage);
+      this.webviewManager.sendError("Error processing command", errorMessage);
     }
   }
 
   /**
    * Handle search packages command
    */
-  private async handleSearchPackages(query: string, includePrerelease?: boolean): Promise<void> {
+  private async handleSearchPackages(
+    query: string,
+    includePrerelease?: boolean,
+  ): Promise<void> {
     try {
-      const results = await searchPackages(query, 30, includePrerelease ?? false);
+      const results = await searchPackages(
+        query,
+        30,
+        includePrerelease ?? false,
+      );
       this.webviewManager.postMessage({
-        type: 'searchResults',
+        type: "searchResults",
         results,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.webviewManager.sendError('Failed to search packages', errorMessage);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.webviewManager.sendError("Failed to search packages", errorMessage);
     }
   }
 
@@ -296,13 +361,14 @@ export class ExtensionManager {
       const metadata = await getPackageMetadata(packageName);
       if (metadata) {
         this.webviewManager.postMessage({
-          type: 'packageMetadata',
+          type: "packageMetadata",
           packageName,
           metadata,
         });
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       console.error(`Error getting package metadata: ${errorMessage}`);
     }
   }
@@ -315,11 +381,15 @@ export class ExtensionManager {
       console.log(`Fetching versions for package: ${packageName}`);
       const results = await searchPackages(packageName, 1, true);
       console.log(`Search results for ${packageName}:`, results.length);
-      const packageData = results.find((r) => r.id.toLowerCase() === packageName.toLowerCase());
+      const packageData = results.find(
+        (r) => r.id.toLowerCase() === packageName.toLowerCase(),
+      );
       if (packageData) {
-        console.log(`Found package data for ${packageName}, versions: ${packageData.versions?.length || 0}`);
+        console.log(
+          `Found package data for ${packageName}, versions: ${packageData.versions?.length || 0}`,
+        );
         this.webviewManager.postMessage({
-          type: 'packageVersions',
+          type: "packageVersions",
           packageName,
           versions: packageData.versions || [],
           // Include all the rich data from search API
@@ -329,7 +399,8 @@ export class ExtensionManager {
         console.log(`No package data found for ${packageName}`);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       console.error(`Error getting package versions: ${errorMessage}`);
     }
   }
@@ -345,7 +416,11 @@ export class ExtensionManager {
   /**
    * Handle add package command
    */
-  private async handleAddPackage(packageName: string, version?: string, projectPath?: string): Promise<void> {
+  private async handleAddPackage(
+    packageName: string,
+    version?: string,
+    projectPath?: string,
+  ): Promise<void> {
     const targetProject = projectPath || this.currentProjectPath;
     if (!targetProject) {
       return;
@@ -361,23 +436,29 @@ export class ExtensionManager {
       });
 
       if (result.success) {
-        vscode.window.showInformationMessage(`Successfully added ${packageName}`);
+        vscode.window.showInformationMessage(
+          `Successfully added ${packageName}`,
+        );
         await this.refreshPackageList();
       } else {
-        const errorMsg = result.stderr || 'Unknown error';
+        const errorMsg = result.stderr || "Unknown error";
         vscode.window.showErrorMessage(`Failed to add package: ${errorMsg}`);
-        this.webviewManager.sendError('Failed to add package', errorMsg);
+        this.webviewManager.sendError("Failed to add package", errorMsg);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.webviewManager.sendError('Error adding package', errorMessage);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.webviewManager.sendError("Error adding package", errorMessage);
     }
   }
 
   /**
    * Handle remove package command
    */
-  private async handleRemovePackage(packageName: string, projectPath?: string): Promise<void> {
+  private async handleRemovePackage(
+    packageName: string,
+    projectPath?: string,
+  ): Promise<void> {
     const targetProject = projectPath || this.currentProjectPath;
     if (!targetProject) {
       return;
@@ -392,31 +473,44 @@ export class ExtensionManager {
       });
 
       if (result.success) {
-        vscode.window.showInformationMessage(`Successfully removed ${packageName}`);
+        vscode.window.showInformationMessage(
+          `Successfully removed ${packageName}`,
+        );
         await this.refreshPackageList();
       } else {
-        const errorMsg = result.stderr || 'Unknown error';
+        const errorMsg = result.stderr || "Unknown error";
         vscode.window.showErrorMessage(`Failed to remove package: ${errorMsg}`);
-        this.webviewManager.sendError('Failed to remove package', errorMsg);
+        this.webviewManager.sendError("Failed to remove package", errorMsg);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.webviewManager.sendError('Error removing package', errorMessage);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.webviewManager.sendError("Error removing package", errorMessage);
     }
   }
 
   /**
    * Handle update package command
    */
-  private async handleUpdatePackage(packageName: string, version: string, projectPath?: string): Promise<void> {
+  private async handleUpdatePackage(
+    packageName: string,
+    version: string,
+    projectPath?: string,
+  ): Promise<void> {
     const targetProject = projectPath || this.currentProjectPath;
     if (!targetProject) {
-      this.webviewManager.sendError('No project selected', 'Please select a project first');
+      this.webviewManager.sendError(
+        "No project selected",
+        "Please select a project first",
+      );
       return;
     }
 
     if (!packageName) {
-      this.webviewManager.sendError('Invalid package', 'Package name is required');
+      this.webviewManager.sendError(
+        "Invalid package",
+        "Package name is required",
+      );
       return;
     }
 
@@ -430,16 +524,27 @@ export class ExtensionManager {
       });
 
       if (result.success) {
-        vscode.window.showInformationMessage(`Successfully updated ${packageName} to ${version}`);
+        vscode.window.showInformationMessage(
+          `Successfully updated ${packageName} to ${version}`,
+        );
         await this.refreshPackageList();
       } else {
-        const errorMsg = result.stderr || 'Unknown error';
-        vscode.window.showErrorMessage(`Failed to update ${packageName}: ${errorMsg}`);
-        this.webviewManager.sendError(`Failed to update ${packageName}`, errorMsg);
+        const errorMsg = result.stderr || "Unknown error";
+        vscode.window.showErrorMessage(
+          `Failed to update ${packageName}: ${errorMsg}`,
+        );
+        this.webviewManager.sendError(
+          `Failed to update ${packageName}`,
+          errorMsg,
+        );
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.webviewManager.sendError(`Error updating ${packageName}`, errorMessage);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.webviewManager.sendError(
+        `Error updating ${packageName}`,
+        errorMessage,
+      );
     }
   }
 
@@ -447,10 +552,15 @@ export class ExtensionManager {
    * Handle upgrade all packages command
    * @param mode - 'all' (respect prerelease), 'minor' (minor updates only), 'major' (include major updates)
    */
-  private async handleUpgradeAllPackages(mode: 'all' | 'minor' | 'major'): Promise<void> {
+  private async handleUpgradeAllPackages(
+    mode: "all" | "minor" | "major",
+  ): Promise<void> {
     const targetProject = this.currentProjectPath;
     if (!targetProject) {
-      this.webviewManager.sendError('No project selected', 'Please select a project first');
+      this.webviewManager.sendError(
+        "No project selected",
+        "Please select a project first",
+      );
       return;
     }
 
@@ -462,12 +572,12 @@ export class ExtensionManager {
 
       // Check if current version is a prerelease
       const currentIsPrerelease = isPrereleaseVersion(pkg.currentVersion);
-      
+
       // Determine target version based on mode
-      if (mode === 'minor') {
+      if (mode === "minor") {
         // Only update if it's a minor or patch update
-        return pkg.updateType === 'minor' || pkg.updateType === 'patch';
-      } else if (mode === 'major') {
+        return pkg.updateType === "minor" || pkg.updateType === "patch";
+      } else if (mode === "major") {
         // Include all updates including major
         return true;
       } else {
@@ -484,12 +594,16 @@ export class ExtensionManager {
     });
 
     if (packagesToUpdate.length === 0) {
-      vscode.window.showInformationMessage('No packages to update with the selected criteria.');
+      vscode.window.showInformationMessage(
+        "No packages to update with the selected criteria.",
+      );
       return;
     }
 
     try {
-      this.webviewManager.sendLoading(`Upgrading ${packagesToUpdate.length} package(s)...`);
+      this.webviewManager.sendLoading(
+        `Upgrading ${packagesToUpdate.length} package(s)...`,
+      );
 
       let successCount = 0;
       let failCount = 0;
@@ -498,9 +612,13 @@ export class ExtensionManager {
       for (const pkg of packagesToUpdate) {
         // Determine the target version
         let targetVersion = pkg.latestVersion!;
-        
+
         // For 'all' mode with prerelease packages, prefer prerelease if available
-        if (mode === 'all' && isPrereleaseVersion(pkg.currentVersion) && pkg.prereleaseVersion) {
+        if (
+          mode === "all" &&
+          isPrereleaseVersion(pkg.currentVersion) &&
+          pkg.prereleaseVersion
+        ) {
           targetVersion = pkg.prereleaseVersion;
         }
 
@@ -519,17 +637,20 @@ export class ExtensionManager {
       }
 
       if (failCount === 0) {
-        vscode.window.showInformationMessage(`Successfully upgraded ${successCount} package(s)`);
+        vscode.window.showInformationMessage(
+          `Successfully upgraded ${successCount} package(s)`,
+        );
       } else {
         vscode.window.showWarningMessage(
-          `Upgraded ${successCount} package(s), ${failCount} failed: ${failedPackages.join(', ')}`
+          `Upgraded ${successCount} package(s), ${failCount} failed: ${failedPackages.join(", ")}`,
         );
       }
 
       await this.refreshPackageList();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.webviewManager.sendError('Error upgrading packages', errorMessage);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.webviewManager.sendError("Error upgrading packages", errorMessage);
     }
   }
 
@@ -537,7 +658,7 @@ export class ExtensionManager {
    * Handle webview dispose
    */
   private handleWebviewDispose(): void {
-    console.log('Webview disposed');
+    console.log("Webview disposed");
   }
 
   /**

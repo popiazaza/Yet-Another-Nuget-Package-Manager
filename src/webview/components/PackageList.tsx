@@ -1,6 +1,6 @@
-import React from 'react';
-import { PackageWithLatest } from '../../types';
-import PackageItem from './PackageItem';
+import React from "react";
+import { PackageWithLatest } from "../../types";
+import PackageItem from "./PackageItem";
 
 interface PackageListProps {
   packages: PackageWithLatest[];
@@ -9,7 +9,12 @@ interface PackageListProps {
   selectedPackage?: PackageWithLatest | null;
 }
 
-const PackageList: React.FC<PackageListProps> = ({ packages, onShowDetails, filterText, selectedPackage }) => {
+const PackageList: React.FC<PackageListProps> = ({
+  packages,
+  onShowDetails,
+  filterText,
+  selectedPackage,
+}) => {
   // Filter packages based on search text
   const filteredPackages = filterText
     ? packages.filter((pkg) => {
@@ -17,7 +22,9 @@ const PackageList: React.FC<PackageListProps> = ({ packages, onShowDetails, filt
         return (
           pkg.name.toLowerCase().includes(searchLower) ||
           pkg.metadata?.description?.toLowerCase().includes(searchLower) ||
-          pkg.metadata?.authors?.some((a) => a.toLowerCase().includes(searchLower)) ||
+          pkg.metadata?.authors?.some((a) =>
+            a.toLowerCase().includes(searchLower),
+          ) ||
           pkg.metadata?.tags?.some((t) => t.toLowerCase().includes(searchLower))
         );
       })
@@ -27,9 +34,7 @@ const PackageList: React.FC<PackageListProps> = ({ packages, onShowDetails, filt
     <div className="package-list">
       <div className="package-list-items">
         {filteredPackages.length === 0 && filterText && (
-          <div className="no-results">
-            No packages matching "{filterText}"
-          </div>
+          <div className="no-results">No packages matching "{filterText}"</div>
         )}
         {filteredPackages.map((pkg) => (
           <PackageItem

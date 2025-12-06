@@ -1,5 +1,5 @@
-import React from 'react';
-import { PackageWithLatest } from '../../types';
+import React from "react";
+import { PackageWithLatest } from "../../types";
 
 interface PackageDetailsModalProps {
   package: PackageWithLatest;
@@ -13,15 +13,15 @@ interface PackageDetailsModalProps {
 function getSeverityLabel(severity: number): string {
   switch (severity) {
     case 0:
-      return 'Low';
+      return "Low";
     case 1:
-      return 'Medium';
+      return "Medium";
     case 2:
-      return 'High';
+      return "High";
     case 3:
-      return 'Critical';
+      return "Critical";
     default:
-      return 'Unknown';
+      return "Unknown";
   }
 }
 
@@ -31,15 +31,15 @@ function getSeverityLabel(severity: number): string {
 function getSeverityIcon(severity: number): string {
   switch (severity) {
     case 0:
-      return '⚪';
+      return "⚪";
     case 1:
-      return '🟡';
+      return "🟡";
     case 2:
-      return '🟠';
+      return "🟠";
     case 3:
-      return '🔴';
+      return "🔴";
     default:
-      return '⚠️';
+      return "⚠️";
   }
 }
 
@@ -47,7 +47,7 @@ function getSeverityIcon(severity: number): string {
  * Format download count
  */
 function formatDownloads(count?: number): string {
-  if (!count) return 'N/A';
+  if (!count) return "N/A";
   if (count >= 1000000) {
     return `${(count / 1000000).toFixed(1)}M`;
   }
@@ -62,12 +62,14 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({
   onClose,
   onUpdate,
 }) => {
-  const hasVulnerabilities = pkg.vulnerabilities && pkg.vulnerabilities.length > 0;
-  
+  const hasVulnerabilities =
+    pkg.vulnerabilities && pkg.vulnerabilities.length > 0;
+
   // Safely get description as string
-  const description = pkg.metadata?.description && typeof pkg.metadata.description === 'string' 
-    ? pkg.metadata.description 
-    : '';
+  const description =
+    pkg.metadata?.description && typeof pkg.metadata.description === "string"
+      ? pkg.metadata.description
+      : "";
 
   return (
     <div className="modal-overlay">
@@ -80,7 +82,7 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({
                 alt=""
                 className="package-header-icon"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
+                  (e.target as HTMLImageElement).style.display = "none";
                 }}
               />
             )}
@@ -95,7 +97,7 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({
               </h2>
               {pkg.metadata?.authors && (
                 <div className="package-header-authors">
-                  by {pkg.metadata.authors.join(', ')}
+                  by {pkg.metadata.authors.join(", ")}
                 </div>
               )}
             </div>
@@ -110,29 +112,49 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({
           <div className="details-section">
             {/* Description */}
             {description && (
-              <p className="description-text" style={{ marginBottom: '16px' }}>{description}</p>
+              <p className="description-text" style={{ marginBottom: "16px" }}>
+                {description}
+              </p>
             )}
 
             {/* Package Metadata */}
             <div className="package-meta-inline">
-              {pkg.metadata?.totalDownloads && pkg.metadata.totalDownloads > 0 && (
-                <span className="meta-item">📥 {formatDownloads(pkg.metadata.totalDownloads)}</span>
-              )}
+              {pkg.metadata?.totalDownloads &&
+                pkg.metadata.totalDownloads > 0 && (
+                  <span className="meta-item">
+                    📥 {formatDownloads(pkg.metadata.totalDownloads)}
+                  </span>
+                )}
               {pkg.metadata?.publishedDate && (
-                <span className="meta-item">📅 {new Date(pkg.metadata.publishedDate).toLocaleDateString()}</span>
+                <span className="meta-item">
+                  📅 {new Date(pkg.metadata.publishedDate).toLocaleDateString()}
+                </span>
               )}
               {pkg.metadata?.owners && pkg.metadata.owners.length > 0 && (
-                <span className="meta-item">👤 {pkg.metadata.owners.join(', ')}</span>
+                <span className="meta-item">
+                  👤 {pkg.metadata.owners.join(", ")}
+                </span>
               )}
               {pkg.metadata?.licenseUrl ? (
-                <a href={pkg.metadata.licenseUrl} target="_blank" rel="noopener noreferrer" className="meta-item meta-link">📄 View License</a>
+                <a
+                  href={pkg.metadata.licenseUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="meta-item meta-link"
+                >
+                  📄 View License
+                </a>
               ) : null}
             </div>
 
             {/* Project URL */}
             {pkg.metadata?.projectUrl && (
               <div className="project-url-inline">
-                <a href={pkg.metadata.projectUrl} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={pkg.metadata.projectUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   🔗 {pkg.metadata.projectUrl}
                 </a>
               </div>
@@ -142,7 +164,9 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({
             {pkg.metadata?.tags && pkg.metadata.tags.length > 0 && (
               <div className="tag-list-inline">
                 {pkg.metadata.tags.map((tag) => (
-                  <span key={tag} className="tag">{tag}</span>
+                  <span key={tag} className="tag">
+                    {tag}
+                  </span>
                 ))}
               </div>
             )}
@@ -158,7 +182,9 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({
               </div>
               <div className="version-info-item">
                 <span className="label">Latest Stable:</span>
-                <code className="version-badge">{pkg.latestVersion || 'N/A'}</code>
+                <code className="version-badge">
+                  {pkg.latestVersion || "N/A"}
+                </code>
                 {pkg.updateAvailable && (
                   <button
                     className="update-inline-button"
@@ -171,7 +197,9 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({
               {pkg.prereleaseVersion && (
                 <div className="version-info-item">
                   <span className="label">Latest Pre-release:</span>
-                  <code className="version-badge prerelease">{pkg.prereleaseVersion}</code>
+                  <code className="version-badge prerelease">
+                    {pkg.prereleaseVersion}
+                  </code>
                   <button
                     className="update-inline-button prerelease"
                     onClick={() => onUpdate(pkg.name, pkg.prereleaseVersion!)}
@@ -187,7 +215,9 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({
           {pkg.metadata?.releaseNotes && (
             <div className="details-section">
               <h3>📝 Release Notes</h3>
-              <div className="release-notes-content">{pkg.metadata.releaseNotes}</div>
+              <div className="release-notes-content">
+                {pkg.metadata.releaseNotes}
+              </div>
             </div>
           )}
 
@@ -201,12 +231,13 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({
                 )}
                 {pkg.metadata.deprecation.reasons && (
                   <p>
-                    <strong>Reasons:</strong> {pkg.metadata.deprecation.reasons.join(', ')}
+                    <strong>Reasons:</strong>{" "}
+                    {pkg.metadata.deprecation.reasons.join(", ")}
                   </p>
                 )}
                 {pkg.metadata.deprecation.alternatePackage && (
                   <p>
-                    <strong>Recommended Alternative:</strong>{' '}
+                    <strong>Recommended Alternative:</strong>{" "}
                     <a
                       href={`https://www.nuget.org/packages/${pkg.metadata.deprecation.alternatePackage.id}`}
                       target="_blank"
@@ -230,8 +261,11 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({
                 {pkg.vulnerabilities!.map((vuln, idx) => (
                   <div key={idx} className="vulnerability-card">
                     <div className="vulnerability-card-header">
-                      <span className={`severity-badge severity-${vuln.severity}`}>
-                        {getSeverityIcon(vuln.severity)} {getSeverityLabel(vuln.severity)}
+                      <span
+                        className={`severity-badge severity-${vuln.severity}`}
+                      >
+                        {getSeverityIcon(vuln.severity)}{" "}
+                        {getSeverityLabel(vuln.severity)}
                       </span>
                     </div>
                     <div className="vulnerability-card-body">
@@ -252,8 +286,8 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({
                 ))}
               </div>
               <p className="security-recommendation">
-                ⚠️ It is recommended to update this package to a version that addresses these
-                vulnerabilities.
+                ⚠️ It is recommended to update this package to a version that
+                addresses these vulnerabilities.
               </p>
             </div>
           )}

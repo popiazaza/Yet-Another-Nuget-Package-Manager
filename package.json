@@ -2,7 +2,7 @@
   "name": "yet-another-nuget-package-manager",
   "displayName": "Yet Another Nuget Package Manager",
   "description": "Yet Another Nuget Package Manager for Visual Studio Code",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publisher": "KaruhutKomol",
   "repository": {
     "type": "git",

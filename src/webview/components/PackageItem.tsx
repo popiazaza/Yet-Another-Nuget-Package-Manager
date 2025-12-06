@@ -1,5 +1,5 @@
-import React from 'react';
-import { PackageWithLatest } from '../../types';
+import React from "react";
+import { PackageWithLatest } from "../../types";
 
 interface PackageItemProps {
   package: PackageWithLatest;
@@ -13,15 +13,15 @@ interface PackageItemProps {
 function getSeverityText(severity: number): string {
   switch (severity) {
     case 0:
-      return '(Low)';
+      return "(Low)";
     case 1:
-      return '(Medium)';
+      return "(Medium)";
     case 2:
-      return '(High)';
+      return "(High)";
     case 3:
-      return '(Critical)';
+      return "(Critical)";
     default:
-      return '';
+      return "";
   }
 }
 
@@ -29,7 +29,9 @@ function getSeverityText(severity: number): string {
  * Format download count for compact display
  */
 function formatDownloads(count?: number): string {
-  if (!count) { return ''; }
+  if (!count) {
+    return "";
+  }
   if (count >= 1000000000) {
     return `${(count / 1000000000).toFixed(1)}B`;
   }
@@ -42,26 +44,38 @@ function formatDownloads(count?: number): string {
   return count.toString();
 }
 
-const PackageItem: React.FC<PackageItemProps> = ({ package: pkg, onShowDetails, isSelected }) => {
-  const hasVulnerabilities = pkg.vulnerabilities && pkg.vulnerabilities.length > 0;
+const PackageItem: React.FC<PackageItemProps> = ({
+  package: pkg,
+  onShowDetails,
+  isSelected,
+}) => {
+  const hasVulnerabilities =
+    pkg.vulnerabilities && pkg.vulnerabilities.length > 0;
   const maxSeverity = hasVulnerabilities
     ? Math.max(...pkg.vulnerabilities!.map((v) => v.severity))
     : -1;
 
   // Safely get description as string
-  const description = pkg.metadata?.description && typeof pkg.metadata.description === 'string' 
-    ? pkg.metadata.description 
-    : '';
+  const description =
+    pkg.metadata?.description && typeof pkg.metadata.description === "string"
+      ? pkg.metadata.description
+      : "";
 
   // Get update info
   const hasUpdate = pkg.updateAvailable && pkg.latestVersion;
-  const updateTypeText = pkg.updateType ? (
-    pkg.updateType === 'major' ? 'Major' : pkg.updateType === 'minor' ? 'Minor' : pkg.updateType === 'patch' ? 'Patch' : 'Update'
-  ) : '';
+  const updateTypeText = pkg.updateType
+    ? pkg.updateType === "major"
+      ? "Major"
+      : pkg.updateType === "minor"
+        ? "Minor"
+        : pkg.updateType === "patch"
+          ? "Patch"
+          : "Update"
+    : "";
 
   return (
-    <div 
-      className={`search-result-item ${isSelected ? 'selected' : ''}`}
+    <div
+      className={`search-result-item ${isSelected ? "selected" : ""}`}
       onClick={() => onShowDetails(pkg)}
     >
       <div className="search-result-icon">
@@ -70,7 +84,7 @@ const PackageItem: React.FC<PackageItemProps> = ({ package: pkg, onShowDetails, 
             src={pkg.metadata.iconUrl}
             alt=""
             onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
+              (e.target as HTMLImageElement).style.display = "none";
             }}
           />
         ) : (
@@ -82,39 +96,51 @@ const PackageItem: React.FC<PackageItemProps> = ({ package: pkg, onShowDetails, 
           <span className="search-result-name">
             {pkg.name}
             {pkg.metadata?.verified && (
-              <span className="verified-badge" title="Verified owner">✓</span>
+              <span className="verified-badge" title="Verified owner">
+                ✓
+              </span>
             )}
           </span>
           <span className="search-result-version">{pkg.currentVersion}</span>
         </div>
         {pkg.metadata?.authors && pkg.metadata.authors.length > 0 && (
           <div className="search-result-authors">
-            by {pkg.metadata.authors.join(', ')}
+            by {pkg.metadata.authors.join(", ")}
           </div>
         )}
         {description && (
           <div className="search-result-description">
             {description.slice(0, 100)}
-            {description.length > 100 ? '...' : ''}
+            {description.length > 100 ? "..." : ""}
           </div>
         )}
         <div className="search-result-stats">
           {pkg.metadata?.totalDownloads ? (
-            <span className="downloads">{formatDownloads(pkg.metadata.totalDownloads)} downloads</span>
+            <span className="downloads">
+              {formatDownloads(pkg.metadata.totalDownloads)} downloads
+            </span>
           ) : null}
         </div>
       </div>
       <div className="search-result-badges">
         {hasUpdate ? (
-          <span className={`upgrade-badge ${pkg.updateType || 'update'}`} title={`Update available: ${pkg.latestVersion}`}>
+          <span
+            className={`upgrade-badge ${pkg.updateType || "update"}`}
+            title={`Update available: ${pkg.latestVersion}`}
+          >
             ⬆️ {updateTypeText}
           </span>
         ) : (
-          <span className="status-uptodate" title="Package is up to date">✅ Latest</span>
+          <span className="status-uptodate" title="Package is up to date">
+            ✅ Latest
+          </span>
         )}
 
         {hasVulnerabilities && (
-          <span className="vulnerability-badge" title={`${pkg.vulnerabilities!.length} vulnerability(ies)`}>
+          <span
+            className="vulnerability-badge"
+            title={`${pkg.vulnerabilities!.length} vulnerability(ies)`}
+          >
             ⚠️ {pkg.vulnerabilities!.length} {getSeverityText(maxSeverity)}
           </span>
         )}

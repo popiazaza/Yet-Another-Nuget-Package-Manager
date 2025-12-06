@@ -1,15 +1,17 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
-import { ExtensionManager } from './extension/ExtensionManager';
-import { registerCsprojFeatures } from './extension/csprojDecorations';
+import * as vscode from "vscode";
+import { ExtensionManager } from "./extension/ExtensionManager";
+import { registerCsprojFeatures } from "./extension/csprojDecorations";
 
 let extensionManager: ExtensionManager | null = null;
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export async function activate(context: vscode.ExtensionContext): Promise<void> {
-  console.log('NuGet Package Manager extension is activating...');
+export async function activate(
+  context: vscode.ExtensionContext,
+): Promise<void> {
+  console.log("NuGet Package Manager extension is activating...");
 
   try {
     // Initialize the extension manager
@@ -20,16 +22,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     // Register the open command
     const openDisposable = vscode.commands.registerCommand(
-      'yet-another-nuget-package-manager.openPackageManager',
+      "yet-another-nuget-package-manager.openPackageManager",
       async (clickedFile?: vscode.Uri) => {
-        console.log('Opening NuGet Package Manager...', clickedFile?.fsPath);
+        console.log("Opening NuGet Package Manager...", clickedFile?.fsPath);
         if (extensionManager) {
           try {
             await extensionManager.openPackageManager(clickedFile);
           } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
             console.error(`Error opening package manager: ${errorMessage}`);
-            vscode.window.showErrorMessage(`Error opening package manager: ${errorMessage}`);
+            vscode.window.showErrorMessage(
+              `Error opening package manager: ${errorMessage}`,
+            );
           }
         }
       },
@@ -37,16 +42,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     // Register the refresh command
     const refreshDisposable = vscode.commands.registerCommand(
-      'yet-another-nuget-package-manager.refresh',
+      "yet-another-nuget-package-manager.refresh",
       async () => {
-        console.log('Refreshing package list...');
+        console.log("Refreshing package list...");
         if (extensionManager) {
           try {
             await extensionManager.refresh();
           } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
             console.error(`Error refreshing packages: ${errorMessage}`);
-            vscode.window.showErrorMessage(`Error refreshing packages: ${errorMessage}`);
+            vscode.window.showErrorMessage(
+              `Error refreshing packages: ${errorMessage}`,
+            );
           }
         }
       },
@@ -56,11 +64,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     // Start monitoring the workspace (non-blocking)
     extensionManager.startMonitoring().catch((error) => {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       console.warn(`Error starting monitoring: ${errorMessage}`);
     });
 
-    console.log('NuGet Package Manager extension activated successfully!');
+    console.log("NuGet Package Manager extension activated successfully!");
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Failed to activate extension: ${errorMessage}`);
@@ -72,7 +81,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
 // This method is called when your extension is deactivated
 export function deactivate(): void {
-  console.log('NuGet Package Manager extension is deactivating...');
+  console.log("NuGet Package Manager extension is deactivating...");
   if (extensionManager) {
     extensionManager.dispose();
     extensionManager = null;

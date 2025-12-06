@@ -3,7 +3,7 @@
  * Monitors for external modifications to project files
  */
 
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
 export type OnCsprojChangeCallback = (projectPath: string) => Promise<void>;
 
@@ -23,7 +23,7 @@ export class CsprojFileWatcher {
     this.onChangeCallback = onChangeCallback;
 
     // Create a file system watcher for .csproj files
-    this.watcher = vscode.workspace.createFileSystemWatcher('**/*.csproj');
+    this.watcher = vscode.workspace.createFileSystemWatcher("**/*.csproj");
 
     // Listen for file changes
     const changeDisposable = this.watcher.onDidChange((uri) => {
@@ -40,7 +40,12 @@ export class CsprojFileWatcher {
       this.handleFileChange(uri);
     });
 
-    this.disposables.push(changeDisposable, createDisposable, deleteDisposable, this.watcher);
+    this.disposables.push(
+      changeDisposable,
+      createDisposable,
+      deleteDisposable,
+      this.watcher,
+    );
   }
 
   /**
@@ -52,7 +57,8 @@ export class CsprojFileWatcher {
       try {
         await this.onChangeCallback(uri.fsPath);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         console.error(`Error in file watcher callback: ${errorMessage}`);
       }
     }
@@ -83,7 +89,9 @@ export class CsprojFileWatcher {
  * @param onChangeCallback - Callback when files change
  * @returns CsprojFileWatcher instance
  */
-export function createCsprojWatcher(onChangeCallback: OnCsprojChangeCallback): CsprojFileWatcher {
+export function createCsprojWatcher(
+  onChangeCallback: OnCsprojChangeCallback,
+): CsprojFileWatcher {
   const watcher = new CsprojFileWatcher();
   watcher.watch(onChangeCallback);
   return watcher;

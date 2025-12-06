@@ -3,9 +3,9 @@
  * Extracts PackageReference elements and converts to PackageReference objects
  */
 
-import * as fs from 'fs';
-import * as xml2js from 'xml2js';
-import { PackageReference, ParseCsprojResult } from '../types';
+import * as fs from "fs";
+import * as xml2js from "xml2js";
+import { PackageReference, ParseCsprojResult } from "../types";
 
 const xmlParser = new xml2js.Parser();
 
@@ -14,10 +14,12 @@ const xmlParser = new xml2js.Parser();
  * @param projectPath - Absolute path to the .csproj file
  * @returns ParseCsprojResult with packages or error
  */
-export async function parseCsproj(projectPath: string): Promise<ParseCsprojResult> {
+export async function parseCsproj(
+  projectPath: string,
+): Promise<ParseCsprojResult> {
   try {
     // Read the .csproj file
-    const fileContent = fs.readFileSync(projectPath, 'utf-8');
+    const fileContent = fs.readFileSync(projectPath, "utf-8");
 
     // Parse XML
     const parsedXml = await xmlParser.parseStringPromise(fileContent);
@@ -76,7 +78,9 @@ export async function parseCsproj(projectPath: string): Promise<ParseCsprojResul
  * @param workspacePath - Root path of the workspace
  * @returns Array of .csproj file paths
  */
-export async function findCsprojFiles(workspacePath: string): Promise<string[]> {
+export async function findCsprojFiles(
+  workspacePath: string,
+): Promise<string[]> {
   const csprojFiles: string[] = [];
 
   function walkDir(dir: string): void {
@@ -90,15 +94,15 @@ export async function findCsprojFiles(workspacePath: string): Promise<string[]> 
         if (stat.isDirectory()) {
           // Skip common non-project directories
           if (
-            !file.startsWith('.') &&
-            file !== 'node_modules' &&
-            file !== 'bin' &&
-            file !== 'obj' &&
-            file !== 'packages'
+            !file.startsWith(".") &&
+            file !== "node_modules" &&
+            file !== "bin" &&
+            file !== "obj" &&
+            file !== "packages"
           ) {
             walkDir(filePath);
           }
-        } else if (file.endsWith('.csproj')) {
+        } else if (file.endsWith(".csproj")) {
           csprojFiles.push(filePath);
         }
       }
@@ -116,7 +120,9 @@ export async function findCsprojFiles(workspacePath: string): Promise<string[]> 
  * @param workspacePath - Root path of the workspace
  * @returns Path to first .csproj file, or undefined if none found
  */
-export async function getFirstCsproj(workspacePath: string): Promise<string | undefined> {
+export async function getFirstCsproj(
+  workspacePath: string,
+): Promise<string | undefined> {
   const files = await findCsprojFiles(workspacePath);
   return files.length > 0 ? files[0] : undefined;
 }

@@ -9,9 +9,5 @@
     "declaration": false,
     "declarationMap": false
   },
-  "include": [
-    "src/extension.ts",
-    "src/extension/**/*.ts",
-    "src/types/**/*.ts"
-  ]
+  "include": ["src/extension.ts", "src/extension/**/*.ts", "src/types/**/*.ts"]
 }

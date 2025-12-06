@@ -3,11 +3,18 @@
  * Manages webview panel lifecycle and communication with the extension
  */
 
-import * as vscode from 'vscode';
-import * as path from 'path';
-import { PackageWithLatest, ExtensionMessage, WebviewMessage, ProjectInfo } from '../types';
+import * as vscode from "vscode";
+import * as path from "path";
+import {
+  PackageWithLatest,
+  ExtensionMessage,
+  WebviewMessage,
+  ProjectInfo,
+} from "../types";
 
-export type OnWebviewMessageCallback = (message: WebviewMessage) => Promise<void>;
+export type OnWebviewMessageCallback = (
+  message: WebviewMessage,
+) => Promise<void>;
 export type OnWebviewDisposeCallback = () => void;
 
 /**
@@ -32,13 +39,13 @@ export class WebviewManager {
     onMessage: OnWebviewMessageCallback,
     onDispose: OnWebviewDisposeCallback,
   ): void {
-    console.log('Creating webview panel...');
+    console.log("Creating webview panel...");
     this.onMessageCallback = onMessage;
     this.onDisposeCallback = onDispose;
 
     // If panel already exists, reveal it
     if (this.panel) {
-      console.log('Panel already exists, revealing it...');
+      console.log("Panel already exists, revealing it...");
       this.panel.reveal(vscode.ViewColumn.One);
       return;
     }
@@ -46,19 +53,19 @@ export class WebviewManager {
     try {
       // Create new webview panel
       this.panel = vscode.window.createWebviewPanel(
-        'nugetPackageManager',
-        'NuGet Package Manager',
+        "nugetPackageManager",
+        "NuGet Package Manager",
         vscode.ViewColumn.One,
         {
           enableScripts: true,
           localResourceRoots: [
-            vscode.Uri.file(path.join(this.context.extensionPath, 'dist')),
+            vscode.Uri.file(path.join(this.context.extensionPath, "dist")),
           ],
           retainContextWhenHidden: true,
         },
       );
 
-      console.log('Webview panel created successfully');
+      console.log("Webview panel created successfully");
 
       // Set the webview's HTML content
       this.updateWebviewContent();
@@ -74,14 +81,15 @@ export class WebviewManager {
 
       // Handle panel disposal
       this.panel.onDidDispose(() => {
-        console.log('Webview panel disposed');
+        console.log("Webview panel disposed");
         this.panel = null;
         if (this.onDisposeCallback) {
           this.onDisposeCallback();
         }
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       console.error(`Error creating webview panel: ${errorMessage}`);
       throw error;
     }
@@ -97,12 +105,20 @@ export class WebviewManager {
 
     try {
       const webview = this.panel.webview;
-      const distPath = path.join(this.context.extensionPath, 'dist', 'webview.js');
-      const cssPath = path.join(this.context.extensionPath, 'dist', 'style.css');
+      const distPath = path.join(
+        this.context.extensionPath,
+        "dist",
+        "webview.js",
+      );
+      const cssPath = path.join(
+        this.context.extensionPath,
+        "dist",
+        "style.css",
+      );
       const scriptUri = webview.asWebviewUri(vscode.Uri.file(distPath));
       const cssUri = webview.asWebviewUri(vscode.Uri.file(cssPath));
       const nonce = getNonce();
-      
+
       console.log(`Creating webview with script from: ${distPath}`);
       console.log(`Webview URI: ${scriptUri}`);
 
@@ -136,9 +152,10 @@ export class WebviewManager {
       `;
 
       this.panel.webview.html = html;
-      console.log('Webview HTML set successfully');
+      console.log("Webview HTML set successfully");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       console.error(`Error updating webview content: ${errorMessage}`);
     }
   }
@@ -153,7 +170,8 @@ export class WebviewManager {
         await this.onMessageCallback(message as WebviewMessage);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       console.error(`Error handling webview message: ${errorMessage}`);
     }
   }
@@ -174,9 +192,13 @@ export class WebviewManager {
    * @param projectPath - Path to the project file
    * @param projects - Optional array of all available projects
    */
-  public updatePackageList(packageList: PackageWithLatest[], projectPath: string, projects?: ProjectInfo[]): void {
+  public updatePackageList(
+    packageList: PackageWithLatest[],
+    projectPath: string,
+    projects?: ProjectInfo[],
+  ): void {
     this.postMessage({
-      type: 'packageListUpdate',
+      type: "packageListUpdate",
       projectPath,
       data: packageList,
       projects,
@@ -190,7 +212,7 @@ export class WebviewManager {
    */
   public sendError(error: string, details?: string): void {
     this.postMessage({
-      type: 'error',
+      type: "error",
       error,
       details,
       message: error,
@@ -203,7 +225,7 @@ export class WebviewManager {
    */
   public sendLoading(message: string): void {
     this.postMessage({
-      type: 'loading',
+      type: "loading",
       message,
     });
   }
@@ -220,7 +242,7 @@ export class WebviewManager {
     packages?: PackageWithLatest[],
   ): void {
     this.postMessage({
-      type: 'operationComplete',
+      type: "operationComplete",
       success,
       message,
       packages,
@@ -261,13 +283,16 @@ export class WebviewManager {
  * @param context - VS Code extension context
  * @returns WebviewManager instance
  */
-export function createWebviewManager(context: vscode.ExtensionContext): WebviewManager {
+export function createWebviewManager(
+  context: vscode.ExtensionContext,
+): WebviewManager {
   return new WebviewManager(context);
 }
 
 function getNonce(): string {
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let text = '';
+  const possible =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let text = "";
   for (let i = 0; i < 32; i += 1) {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
   }

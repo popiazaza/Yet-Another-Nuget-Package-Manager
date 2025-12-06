@@ -46,7 +46,7 @@ export interface PackageMetadata {
 /**
  * Update type classification
  */
-export type UpdateType = 'major' | 'minor' | 'patch' | 'prerelease' | 'none';
+export type UpdateType = "major" | "minor" | "patch" | "prerelease" | "none";
 
 export interface PackageWithLatest extends Package {
   latestVersion: string;
@@ -131,23 +131,49 @@ export interface NuGetSearchResult {
   tags?: string[];
 }
 
-export type ExtensionMessage = 
-  | { type: 'packageListUpdate'; data: PackageWithLatest[]; packages?: PackageReference[]; projectPath?: string; projects?: ProjectInfo[] }
-  | { type: 'error'; message: string; error?: string; details?: string }
-  | { type: 'operationComplete'; success: boolean; message?: string; packages?: PackageWithLatest[] }
-  | { type: 'loading'; message: string }
-  | { type: 'searchResults'; results: NuGetSearchResult[] }
-  | { type: 'packageMetadata'; packageName: string; metadata: PackageMetadata }
-  | { type: 'packageVersions'; packageName: string; versions: { version: string; downloads: number }[]; searchData?: NuGetSearchResult }
-  | { type: 'projectList'; projects: ProjectInfo[] };
+export type ExtensionMessage =
+  | {
+      type: "packageListUpdate";
+      data: PackageWithLatest[];
+      packages?: PackageReference[];
+      projectPath?: string;
+      projects?: ProjectInfo[];
+    }
+  | { type: "error"; message: string; error?: string; details?: string }
+  | {
+      type: "operationComplete";
+      success: boolean;
+      message?: string;
+      packages?: PackageWithLatest[];
+    }
+  | { type: "loading"; message: string }
+  | { type: "searchResults"; results: NuGetSearchResult[] }
+  | { type: "packageMetadata"; packageName: string; metadata: PackageMetadata }
+  | {
+      type: "packageVersions";
+      packageName: string;
+      versions: { version: string; downloads: number }[];
+      searchData?: NuGetSearchResult;
+    }
+  | { type: "projectList"; projects: ProjectInfo[] };
 
 export type WebviewMessage =
-  | { command: 'addPackage'; packageName: string; version?: string; projectPath?: string }
-  | { command: 'removePackage'; packageName: string; projectPath?: string }
-  | { command: 'updatePackage'; packageName: string; version: string; projectPath?: string }
-  | { command: 'refresh' }
-  | { command: 'searchPackages'; query: string; includePrerelease?: boolean }
-  | { command: 'getPackageMetadata'; packageName: string }
-  | { command: 'getPackageVersions'; packageName: string }
-  | { command: 'selectProject'; projectPath: string }
-  | { command: 'upgradeAllPackages'; mode: 'all' | 'minor' | 'major' };
+  | {
+      command: "addPackage";
+      packageName: string;
+      version?: string;
+      projectPath?: string;
+    }
+  | { command: "removePackage"; packageName: string; projectPath?: string }
+  | {
+      command: "updatePackage";
+      packageName: string;
+      version: string;
+      projectPath?: string;
+    }
+  | { command: "refresh" }
+  | { command: "searchPackages"; query: string; includePrerelease?: boolean }
+  | { command: "getPackageMetadata"; packageName: string }
+  | { command: "getPackageVersions"; packageName: string }
+  | { command: "selectProject"; projectPath: string }
+  | { command: "upgradeAllPackages"; mode: "all" | "minor" | "major" };

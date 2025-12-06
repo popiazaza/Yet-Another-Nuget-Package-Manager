@@ -6,22 +6,41 @@
 }
 
 :root {
-  --vscode-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --vscode-font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   --vscode-editor-foreground: var(--vscode-editor-foreground, #d4d4d4);
   --vscode-editor-background: var(--vscode-editor-background, #1e1e1e);
   --vscode-button-background: var(--vscode-button-background, #0e639c);
   --vscode-button-foreground: var(--vscode-button-foreground, #ffffff);
-  --vscode-button-hoverBackground: var(--vscode-button-hoverBackground, #1177bb);
-  --vscode-button-secondaryBackground: var(--vscode-button-secondaryBackground, #3e3e42);
-  --vscode-button-secondaryForeground: var(--vscode-button-secondaryForeground, #cccccc);
-  --vscode-button-secondaryHoverBackground: var(--vscode-button-secondaryHoverBackground, #45453a);
+  --vscode-button-hoverBackground: var(
+    --vscode-button-hoverBackground,
+    #1177bb
+  );
+  --vscode-button-secondaryBackground: var(
+    --vscode-button-secondaryBackground,
+    #3e3e42
+  );
+  --vscode-button-secondaryForeground: var(
+    --vscode-button-secondaryForeground,
+    #cccccc
+  );
+  --vscode-button-secondaryHoverBackground: var(
+    --vscode-button-secondaryHoverBackground,
+    #45453a
+  );
   --vscode-inputBox-background: var(--vscode-inputBox-background, #3c3c3c);
   --vscode-inputBox-foreground: var(--vscode-inputBox-foreground, #cccccc);
   --vscode-inputBox-border: var(--vscode-inputBox-border, transparent);
   --vscode-list-hoverBackground: var(--vscode-list-hoverBackground, #2d2d30);
-  --vscode-list-activeSelectionBackground: var(--vscode-list-activeSelectionBackground, #094771);
-  --vscode-editorLineNumber-foreground: var(--vscode-editorLineNumber-foreground, #858585);
+  --vscode-list-activeSelectionBackground: var(
+    --vscode-list-activeSelectionBackground,
+    #094771
+  );
+  --vscode-editorLineNumber-foreground: var(
+    --vscode-editorLineNumber-foreground,
+    #858585
+  );
   --update-major: #ff6b6b;
   --update-minor: #ffd93d;
   --update-patch: #6bcb77;
@@ -164,7 +183,9 @@ body {
   cursor: pointer;
   font-size: 13px;
   font-family: var(--vscode-font-family);
-  transition: color 0.2s, border-color 0.2s;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
 }
 
 .tab-button:hover {
@@ -857,7 +878,7 @@ body {
   background-color: var(--vscode-list-hoverBackground);
   padding: 2px 8px;
   border-radius: 3px;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
   font-size: 12px;
   white-space: nowrap;
 }
@@ -876,7 +897,9 @@ body {
   font-size: 11px;
   font-family: var(--vscode-font-family);
   white-space: nowrap;
-  transition: background-color 0.2s, border-color 0.2s;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
 }
 
 .update-button {
@@ -1299,10 +1322,18 @@ body {
   font-weight: 500;
 }
 
-.severity-badge.severity-0 { color: #a0a0a0; }
-.severity-badge.severity-1 { color: #ffd93d; }
-.severity-badge.severity-2 { color: #ff9800; }
-.severity-badge.severity-3 { color: #ff5252; }
+.severity-badge.severity-0 {
+  color: #a0a0a0;
+}
+.severity-badge.severity-1 {
+  color: #ffd93d;
+}
+.severity-badge.severity-2 {
+  color: #ff9800;
+}
+.severity-badge.severity-3 {
+  color: #ff5252;
+}
 
 .vulnerability-card-body {
   padding: 12px;
@@ -1782,7 +1813,7 @@ body {
   .split-panel-container {
     flex-direction: column;
   }
-  
+
   .left-panel {
     flex: 0 0 50%;
     max-width: none;
@@ -1790,7 +1821,7 @@ body {
     border-right: none;
     border-bottom: 1px solid var(--vscode-list-hoverBackground);
   }
-  
+
   .right-panel {
     flex: 1;
   }
@@ -1811,7 +1842,7 @@ body {
   .app-header {
     padding: 12px;
   }
-  
+
   .status-badge {
     font-size: 11px;
     padding: 2px 6px;

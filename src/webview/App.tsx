@@ -1,8 +1,14 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { PackageWithLatest, ExtensionMessage, WebviewMessage, ProjectInfo, NuGetSearchResult } from '../types';
-import PackageList from './components/PackageList';
-import PackageDetailsPanel from './components/PackageDetailsPanel';
-import './components/styles.css';
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import {
+  PackageWithLatest,
+  ExtensionMessage,
+  WebviewMessage,
+  ProjectInfo,
+  NuGetSearchResult,
+} from "../types";
+import PackageList from "./components/PackageList";
+import PackageDetailsPanel from "./components/PackageDetailsPanel";
+import "./components/styles.css";
 
 interface VSCodeAPI {
   postMessage(message: unknown): void;
@@ -17,14 +23,14 @@ declare global {
 // Acquire the VS Code API once, outside the component to avoid issues with React StrictMode
 const vscodeApi = acquireVsCodeApi();
 
-type ViewMode = 'installed' | 'browse';
-type UpgradeMode = 'all' | 'minor' | 'major';
+type ViewMode = "installed" | "browse";
+type UpgradeMode = "all" | "minor" | "major";
 
 /**
  * Format download count for compact display (lists)
  */
 function formatDownloadsShort(count?: number): string {
-  if (!count) return '';
+  if (!count) return "";
   if (count >= 1000000000) {
     return `${(count / 1000000000).toFixed(1)}B`;
   }
@@ -41,7 +47,7 @@ function formatDownloadsShort(count?: number): string {
  * Format download count for full display (details panel)
  */
 function formatDownloadsFull(count?: number): string {
-  if (!count) return '';
+  if (!count) return "";
   return count.toLocaleString();
 }
 
@@ -49,113 +55,129 @@ const App: React.FC = () => {
   const [packages, setPackages] = useState<PackageWithLatest[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('installed');
-  const [projectPath, setProjectPath] = useState<string>('');
+  const [viewMode, setViewMode] = useState<ViewMode>("installed");
+  const [projectPath, setProjectPath] = useState<string>("");
   const [projects, setProjects] = useState<ProjectInfo[]>([]);
   const [searchResults, setSearchResults] = useState<NuGetSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   // Package details are now shown in the right panel instead of a modal
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [includePrerelease, setIncludePrerelease] = useState(false);
-  const [selectedSearchPackage, setSelectedSearchPackage] = useState<NuGetSearchResult | null>(null);
-  const [selectedVersion, setSelectedVersion] = useState('');
+  const [selectedSearchPackage, setSelectedSearchPackage] =
+    useState<NuGetSearchResult | null>(null);
+  const [selectedVersion, setSelectedVersion] = useState("");
   const [showUpgradeMenu, setShowUpgradeMenu] = useState(false);
-  const [selectedInstalledPackage, setSelectedInstalledPackage] = useState<PackageWithLatest | null>(null);
-  const [installedPackageVersions, setInstalledPackageVersions] = useState<{ version: string; downloads: number }[]>([]);
-  const [installedPackageSearchData, setInstalledPackageSearchData] = useState<NuGetSearchResult | null>(null);
-  const [selectedInstalledVersion, setSelectedInstalledVersion] = useState('');
-  const [installedFilter, setInstalledFilter] = useState('');
-  const [operationInProgress, setOperationInProgress] = useState<string | null>(null); // packageName being operated on
+  const [selectedInstalledPackage, setSelectedInstalledPackage] =
+    useState<PackageWithLatest | null>(null);
+  const [installedPackageVersions, setInstalledPackageVersions] = useState<
+    { version: string; downloads: number }[]
+  >([]);
+  const [installedPackageSearchData, setInstalledPackageSearchData] =
+    useState<NuGetSearchResult | null>(null);
+  const [selectedInstalledVersion, setSelectedInstalledVersion] = useState("");
+  const [installedFilter, setInstalledFilter] = useState("");
+  const [operationInProgress, setOperationInProgress] = useState<string | null>(
+    null,
+  ); // packageName being operated on
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const selectedInstalledPackageRef = useRef<PackageWithLatest | null>(null);
 
   // Get set of installed package names for quick lookup
-  const installedPackageNames = new Set(packages.map(p => p.name.toLowerCase()));
+  const installedPackageNames = new Set(
+    packages.map((p) => p.name.toLowerCase()),
+  );
 
   // Keep ref in sync with state
   useEffect(() => {
     selectedInstalledPackageRef.current = selectedInstalledPackage;
   }, [selectedInstalledPackage]);
 
-
   // Handle messages from the extension
-  const handleExtensionMessage = useCallback((event: MessageEvent<ExtensionMessage>) => {
-    const message = event.data;
+  const handleExtensionMessage = useCallback(
+    (event: MessageEvent<ExtensionMessage>) => {
+      const message = event.data;
 
-    switch (message.type) {
-      case 'packageListUpdate':
-        setPackages(message.data || []);
-        setLoading(false);
-        setOperationInProgress(null);
-        setError(null);
-        if (message.projectPath) {
-          setProjectPath(message.projectPath);
-        }
-        if (message.projects) {
-          setProjects(message.projects);
-        }
-        break;
-
-      case 'loading':
-        setLoading(true);
-        setError(null);
-        break;
-
-      case 'error':
-        setError(message.message);
-        setLoading(false);
-        setOperationInProgress(null);
-        break;
-
-      case 'operationComplete':
-        if (message.success) {
-          if (message.packages) {
-            setPackages(message.packages);
-          }
+      switch (message.type) {
+        case "packageListUpdate":
+          setPackages(message.data || []);
+          setLoading(false);
+          setOperationInProgress(null);
           setError(null);
-        } else {
-          setError(message.message || 'Operation failed');
-        }
-        setLoading(false);
-        setOperationInProgress(null);
-        break;
-
-      case 'searchResults':
-        setSearchResults(message.results);
-        setIsSearching(false);
-        break;
-
-      case 'packageVersions':
-        if (message.packageName === selectedInstalledPackageRef.current?.name) {
-          setInstalledPackageVersions(message.versions || []);
-          if (message.searchData) {
-            setInstalledPackageSearchData(message.searchData);
+          if (message.projectPath) {
+            setProjectPath(message.projectPath);
           }
-        }
-        break;
+          if (message.projects) {
+            setProjects(message.projects);
+          }
+          break;
 
-      default:
-        console.warn('Unknown message type:', message.type);
-    }
-  }, []);
+        case "loading":
+          setLoading(true);
+          setError(null);
+          break;
+
+        case "error":
+          setError(message.message);
+          setLoading(false);
+          setOperationInProgress(null);
+          break;
+
+        case "operationComplete":
+          if (message.success) {
+            if (message.packages) {
+              setPackages(message.packages);
+            }
+            setError(null);
+          } else {
+            setError(message.message || "Operation failed");
+          }
+          setLoading(false);
+          setOperationInProgress(null);
+          break;
+
+        case "searchResults":
+          setSearchResults(message.results);
+          setIsSearching(false);
+          break;
+
+        case "packageVersions":
+          if (
+            message.packageName === selectedInstalledPackageRef.current?.name
+          ) {
+            setInstalledPackageVersions(message.versions || []);
+            if (message.searchData) {
+              setInstalledPackageSearchData(message.searchData);
+            }
+          }
+          break;
+
+        default:
+          console.warn("Unknown message type:", message.type);
+      }
+    },
+    [],
+  );
 
   // Set up message listener
   useEffect(() => {
-    window.addEventListener('message', handleExtensionMessage as EventListener);
+    window.addEventListener("message", handleExtensionMessage as EventListener);
     return () => {
-      window.removeEventListener('message', handleExtensionMessage as EventListener);
+      window.removeEventListener(
+        "message",
+        handleExtensionMessage as EventListener,
+      );
     };
   }, [handleExtensionMessage]);
 
   // Request initial package list on mount
   useEffect(() => {
-    vscodeApi.postMessage({ command: 'refresh' } as WebviewMessage);
+    vscodeApi.postMessage({ command: "refresh" } as WebviewMessage);
   }, []);
 
   // Focus on search input when switching to browse mode
   useEffect(() => {
-    if (viewMode === 'browse' && searchInputRef.current) {
+    if (viewMode === "browse" && searchInputRef.current) {
       searchInputRef.current.focus();
     }
   }, [viewMode]);
@@ -174,7 +196,7 @@ const App: React.FC = () => {
         setIsSearching(true);
         searchTimeoutRef.current = setTimeout(() => {
           vscodeApi.postMessage({
-            command: 'searchPackages',
+            command: "searchPackages",
             query: value.trim(),
             includePrerelease,
           } as WebviewMessage);
@@ -183,14 +205,14 @@ const App: React.FC = () => {
         setSearchResults([]);
       }
     },
-    [includePrerelease]
+    [includePrerelease],
   );
 
   // Re-search when prerelease toggle changes
   useEffect(() => {
     if (searchQuery.trim().length >= 2) {
       vscodeApi.postMessage({
-        command: 'searchPackages',
+        command: "searchPackages",
         query: searchQuery.trim(),
         includePrerelease,
       } as WebviewMessage);
@@ -209,7 +231,7 @@ const App: React.FC = () => {
     setInstalledPackageSearchData(null);
     // Request versions for this package
     vscodeApi.postMessage({
-      command: 'getPackageVersions',
+      command: "getPackageVersions",
       packageName: pkg.name,
     } as WebviewMessage);
   };
@@ -217,16 +239,16 @@ const App: React.FC = () => {
   const handleAddPackage = (packageName: string, version?: string) => {
     if (operationInProgress) return; // Prevent double-click
     setOperationInProgress(packageName);
-    setSearchQuery('');
+    setSearchQuery("");
     setSearchResults([]);
     setSelectedSearchPackage(null);
     vscodeApi.postMessage({
-      command: 'addPackage',
+      command: "addPackage",
       packageName,
       version,
     } as WebviewMessage);
     // Switch back to installed view
-    setViewMode('installed');
+    setViewMode("installed");
   };
 
   const handleRemovePackage = (packageName: string) => {
@@ -235,7 +257,7 @@ const App: React.FC = () => {
     // A custom confirmation modal could be implemented for better UX
     setOperationInProgress(packageName);
     vscodeApi.postMessage({
-      command: 'removePackage',
+      command: "removePackage",
       packageName,
     } as WebviewMessage);
   };
@@ -244,7 +266,7 @@ const App: React.FC = () => {
     if (operationInProgress) return;
     setOperationInProgress(packageName);
     vscodeApi.postMessage({
-      command: 'updatePackage',
+      command: "updatePackage",
       packageName,
       version,
     } as WebviewMessage);
@@ -253,20 +275,20 @@ const App: React.FC = () => {
   const handleUpgradeAll = (mode: UpgradeMode) => {
     setShowUpgradeMenu(false);
     vscodeApi.postMessage({
-      command: 'upgradeAllPackages',
+      command: "upgradeAllPackages",
       mode,
     });
   };
 
   const handleRefresh = () => {
-    vscodeApi.postMessage({ command: 'refresh' } as WebviewMessage);
+    vscodeApi.postMessage({ command: "refresh" } as WebviewMessage);
   };
 
   const handleProjectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newPath = e.target.value;
     setProjectPath(newPath);
     vscodeApi.postMessage({
-      command: 'selectProject',
+      command: "selectProject",
       projectPath: newPath,
     } as WebviewMessage);
   };
@@ -274,15 +296,15 @@ const App: React.FC = () => {
   // Package details are now displayed inline in the right panel
 
   const getProjectName = () => {
-    if (!projectPath) return 'Project';
+    if (!projectPath) return "Project";
     const parts = projectPath.split(/[\\/]/);
-    return parts[parts.length - 1]?.replace('.csproj', '') || 'Project';
+    return parts[parts.length - 1]?.replace(".csproj", "") || "Project";
   };
 
   // Count packages with updates and vulnerabilities
   const updatesAvailable = packages.filter((p) => p.updateAvailable).length;
   const vulnerablePackages = packages.filter(
-    (p) => p.vulnerabilities && p.vulnerabilities.length > 0
+    (p) => p.vulnerabilities && p.vulnerabilities.length > 0,
   ).length;
 
   return (
@@ -308,12 +330,19 @@ const App: React.FC = () => {
         </div>
         <div className="header-actions">
           {vulnerablePackages > 0 && (
-            <span className="vuln-count" title={`${vulnerablePackages} package(s) with vulnerabilities`}>
+            <span
+              className="vuln-count"
+              title={`${vulnerablePackages} package(s) with vulnerabilities`}
+            >
               ⚠️ {vulnerablePackages}
             </span>
           )}
-          <button className="refresh-button" onClick={handleRefresh} disabled={loading}>
-            {loading ? '⟳ Refreshing...' : '⟳ Refresh'}
+          <button
+            className="refresh-button"
+            onClick={handleRefresh}
+            disabled={loading}
+          >
+            {loading ? "⟳ Refreshing..." : "⟳ Refresh"}
           </button>
         </div>
       </header>
@@ -321,20 +350,20 @@ const App: React.FC = () => {
       {/* View Mode Tabs */}
       <div className="view-tabs">
         <button
-          className={`tab-button ${viewMode === 'installed' ? 'active' : ''}`}
-          onClick={() => setViewMode('installed')}
+          className={`tab-button ${viewMode === "installed" ? "active" : ""}`}
+          onClick={() => setViewMode("installed")}
         >
           📦 Installed ({packages.length})
         </button>
         <button
-          className={`tab-button ${viewMode === 'browse' ? 'active' : ''}`}
-          onClick={() => setViewMode('browse')}
+          className={`tab-button ${viewMode === "browse" ? "active" : ""}`}
+          onClick={() => setViewMode("browse")}
         >
           🔍 Browse
         </button>
-        
+
         {/* Upgrade All Button */}
-        {viewMode === 'installed' && updatesAvailable > 0 && (
+        {viewMode === "installed" && updatesAvailable > 0 && (
           <div className="upgrade-all-container">
             <button
               className="upgrade-all-button"
@@ -344,13 +373,13 @@ const App: React.FC = () => {
             </button>
             {showUpgradeMenu && (
               <div className="upgrade-menu">
-                <button onClick={() => handleUpgradeAll('all')}>
+                <button onClick={() => handleUpgradeAll("all")}>
                   ⬆️ Upgrade All (Respect Pre-release)
                 </button>
-                <button onClick={() => handleUpgradeAll('minor')}>
+                <button onClick={() => handleUpgradeAll("minor")}>
                   🟡 Minor Updates Only
                 </button>
-                <button onClick={() => handleUpgradeAll('major')}>
+                <button onClick={() => handleUpgradeAll("major")}>
                   🔴 Include Major Updates
                 </button>
               </div>
@@ -366,11 +395,13 @@ const App: React.FC = () => {
             <strong>Error</strong>
             <p>{error}</p>
           </div>
-          <button className="error-close" onClick={() => setError(null)}>×</button>
+          <button className="error-close" onClick={() => setError(null)}>
+            ×
+          </button>
         </div>
       )}
 
-      {loading && packages.length === 0 && viewMode === 'installed' && (
+      {loading && packages.length === 0 && viewMode === "installed" && (
         <div className="loading-container">
           <div className="spinner"></div>
           <p>Loading packages...</p>
@@ -378,12 +409,15 @@ const App: React.FC = () => {
       )}
 
       {/* Installed Packages View */}
-      {viewMode === 'installed' && (
+      {viewMode === "installed" && (
         <>
           {!loading && packages.length === 0 && !error && (
             <div className="empty-state">
               <p>No packages found in this project.</p>
-              <button className="primary-button" onClick={() => setViewMode('browse')}>
+              <button
+                className="primary-button"
+                onClick={() => setViewMode("browse")}
+              >
                 + Add Package
               </button>
             </div>
@@ -402,9 +436,9 @@ const App: React.FC = () => {
                     className="filter-input"
                   />
                   {installedFilter && (
-                    <button 
+                    <button
                       className="clear-filter-button"
-                      onClick={() => setInstalledFilter('')}
+                      onClick={() => setInstalledFilter("")}
                       title="Clear filter"
                     >
                       ×
@@ -418,7 +452,7 @@ const App: React.FC = () => {
                   selectedPackage={selectedInstalledPackage}
                 />
               </div>
-              
+
               {/* Right Panel - Package Details */}
               <div className="right-panel">
                 {selectedInstalledPackage ? (
@@ -447,7 +481,7 @@ const App: React.FC = () => {
       )}
 
       {/* Browse/Add Packages View */}
-      {viewMode === 'browse' && (
+      {viewMode === "browse" && (
         <div className="split-panel-container">
           {/* Left Panel - Search & Results */}
           <div className="left-panel">
@@ -465,74 +499,95 @@ const App: React.FC = () => {
               </div>
               <div className="prerelease-toggle">
                 <label>
-                  <input type="checkbox" checked={includePrerelease} onChange={(e) => setIncludePrerelease(e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    checked={includePrerelease}
+                    onChange={(e) => setIncludePrerelease(e.target.checked)}
+                  />
                   Include prerelease
                 </label>
               </div>
             </div>
 
             <div className="search-results">
-              {searchQuery.trim().length >= 2 && !isSearching && searchResults.length === 0 && (
-                <div className="no-results">
-                  No packages found for "{searchQuery}"
-                </div>
-              )}
+              {searchQuery.trim().length >= 2 &&
+                !isSearching &&
+                searchResults.length === 0 && (
+                  <div className="no-results">
+                    No packages found for "{searchQuery}"
+                  </div>
+                )}
               {searchQuery.trim().length < 2 && (
                 <div className="search-hint">
                   Type at least 2 characters to search for packages
                 </div>
               )}
               {searchResults.map((pkg) => {
-                const isPackageInstalled = installedPackageNames.has(pkg.id.toLowerCase());
+                const isPackageInstalled = installedPackageNames.has(
+                  pkg.id.toLowerCase(),
+                );
                 return (
-                <div
-                  key={pkg.id}
-                  className={`search-result-item ${selectedSearchPackage?.id === pkg.id ? 'selected' : ''}`}
-                  onClick={() => handleSelectSearchPackage(pkg)}
-                >
-                  <div className="search-result-icon">
-                    {pkg.iconUrl ? (
-                      <img
-                        src={pkg.iconUrl}
-                        alt=""
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <div className="default-icon">📦</div>
-                    )}
+                  <div
+                    key={pkg.id}
+                    className={`search-result-item ${selectedSearchPackage?.id === pkg.id ? "selected" : ""}`}
+                    onClick={() => handleSelectSearchPackage(pkg)}
+                  >
+                    <div className="search-result-icon">
+                      {pkg.iconUrl ? (
+                        <img
+                          src={pkg.iconUrl}
+                          alt=""
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display =
+                              "none";
+                          }}
+                        />
+                      ) : (
+                        <div className="default-icon">📦</div>
+                      )}
+                    </div>
+                    <div className="search-result-info">
+                      <div className="search-result-header">
+                        <span className="search-result-name">
+                          {pkg.id}
+                          {pkg.verified && (
+                            <span
+                              className="verified-badge"
+                              title="Verified owner"
+                            >
+                              ✓
+                            </span>
+                          )}
+                          {isPackageInstalled && (
+                            <span
+                              className="installed-indicator"
+                              title="Already installed"
+                            >
+                              ✓ Installed
+                            </span>
+                          )}
+                        </span>
+                        <span className="search-result-version">
+                          {pkg.version}
+                        </span>
+                      </div>
+                      <div className="search-result-authors">
+                        by {pkg.authors.join(", ") || "Unknown"}
+                      </div>
+                      <div className="search-result-description">
+                        {pkg.description?.slice(0, 100)}
+                        {pkg.description && pkg.description.length > 100
+                          ? "..."
+                          : ""}
+                      </div>
+                      <div className="search-result-stats">
+                        <span className="downloads">
+                          {formatDownloadsShort(pkg.totalDownloads)} downloads
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="search-result-info">
-                    <div className="search-result-header">
-                      <span className="search-result-name">
-                        {pkg.id}
-                        {pkg.verified && (
-                          <span className="verified-badge" title="Verified owner">
-                            ✓
-                          </span>
-                        )}
-                        {isPackageInstalled && (
-                          <span className="installed-indicator" title="Already installed">
-                            ✓ Installed
-                          </span>
-                        )}
-                      </span>
-                      <span className="search-result-version">{pkg.version}</span>
-                    </div>
-                    <div className="search-result-authors">
-                      by {pkg.authors.join(', ') || 'Unknown'}
-                    </div>
-                    <div className="search-result-description">
-                      {pkg.description?.slice(0, 100)}
-                      {pkg.description && pkg.description.length > 100 ? '...' : ''}
-                    </div>
-                    <div className="search-result-stats">
-                      <span className="downloads">{formatDownloadsShort(pkg.totalDownloads)} downloads</span>
-                    </div>
-                  </div>
-                </div>
-              );
+                );
               })}
             </div>
           </div>
@@ -546,8 +601,16 @@ const App: React.FC = () => {
                 onVersionChange={setSelectedVersion}
                 onAdd={handleAddPackage}
                 operationInProgress={operationInProgress}
-                isAlreadyInstalled={installedPackageNames.has(selectedSearchPackage.id.toLowerCase())}
-                installedVersion={packages.find(p => p.name.toLowerCase() === selectedSearchPackage.id.toLowerCase())?.currentVersion}
+                isAlreadyInstalled={installedPackageNames.has(
+                  selectedSearchPackage.id.toLowerCase(),
+                )}
+                installedVersion={
+                  packages.find(
+                    (p) =>
+                      p.name.toLowerCase() ===
+                      selectedSearchPackage.id.toLowerCase(),
+                  )?.currentVersion
+                }
                 formatDownloadsShort={formatDownloadsShort}
                 formatDownloadsFull={formatDownloadsFull}
               />
@@ -560,7 +623,6 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };
