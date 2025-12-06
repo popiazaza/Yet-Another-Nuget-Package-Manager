@@ -4,14 +4,12 @@ import PackageItem from './PackageItem';
 
 interface PackageListProps {
   packages: PackageWithLatest[];
-  onRemove: (packageName: string) => void;
-  onUpdate: (packageName: string, version: string) => void;
   onShowDetails: (pkg: PackageWithLatest) => void;
   filterText?: string;
   selectedPackage?: PackageWithLatest | null;
 }
 
-const PackageList: React.FC<PackageListProps> = ({ packages, onRemove, onUpdate, onShowDetails, filterText, selectedPackage }) => {
+const PackageList: React.FC<PackageListProps> = ({ packages, onShowDetails, filterText, selectedPackage }) => {
   // Filter packages based on search text
   const filteredPackages = filterText
     ? packages.filter((pkg) => {
@@ -37,8 +35,6 @@ const PackageList: React.FC<PackageListProps> = ({ packages, onRemove, onUpdate,
           <PackageItem
             key={pkg.name}
             package={pkg}
-            onRemove={onRemove}
-            onUpdate={onUpdate}
             onShowDetails={onShowDetails}
             isSelected={selectedPackage?.name === pkg.name}
           />

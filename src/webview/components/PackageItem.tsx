@@ -3,8 +3,6 @@ import { PackageWithLatest } from '../../types';
 
 interface PackageItemProps {
   package: PackageWithLatest;
-  onRemove: (packageName: string) => void;
-  onUpdate: (packageName: string, version: string) => void;
   onShowDetails: (pkg: PackageWithLatest) => void;
   isSelected?: boolean;
 }
@@ -31,7 +29,7 @@ function getSeverityIcon(severity: number): string {
  * Format download count for compact display
  */
 function formatDownloads(count?: number): string {
-  if (!count) return '';
+  if (!count) { return ''; }
   if (count >= 1000000000) {
     return `${(count / 1000000000).toFixed(1)}B`;
   }
@@ -44,7 +42,7 @@ function formatDownloads(count?: number): string {
   return count.toString();
 }
 
-const PackageItem: React.FC<PackageItemProps> = ({ package: pkg, onRemove, onUpdate, onShowDetails, isSelected }) => {
+const PackageItem: React.FC<PackageItemProps> = ({ package: pkg, onShowDetails, isSelected }) => {
   const hasVulnerabilities = pkg.vulnerabilities && pkg.vulnerabilities.length > 0;
   const maxSeverity = hasVulnerabilities
     ? Math.max(...pkg.vulnerabilities!.map((v) => v.severity))

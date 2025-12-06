@@ -105,7 +105,7 @@ function isVersionUpToDate(current: string, latest: string): boolean {
  * CodeLens provider for .csproj files
  * Shows clickable "Update to X.X.X" links on PackageReference lines
  */
-class CsprojCodeLensProviderImpl {
+class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
   private _onDidChangeCodeLenses = new vscode.EventEmitter<void>();
   public readonly onDidChangeCodeLenses: vscode.Event<void> = this._onDidChangeCodeLenses.event;
 
@@ -769,7 +769,7 @@ export function registerCsprojFeatures(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.languages.registerCodeLensProvider(
       { pattern: '**/*.csproj', scheme: 'file' },
-      codeLensProvider as unknown as vscode.CodeLensProvider
+      codeLensProvider
     )
   );
 

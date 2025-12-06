@@ -12,7 +12,6 @@ import { getLatestVersions, getLatestPrereleaseVersion, getUpdateType, getVulner
 import { addPackage, removePackage, updatePackage } from './dotnetCli';
 
 export class ExtensionManager {
-  private context: vscode.ExtensionContext;
   private webviewManager: WebviewManager;
   private fileWatcher: CsprojFileWatcher | null = null;
   private currentProjectPath: string | null = null;
@@ -20,7 +19,6 @@ export class ExtensionManager {
   private allProjects: ProjectInfo[] = [];
 
   constructor(context: vscode.ExtensionContext) {
-    this.context = context;
     this.webviewManager = new WebviewManager(context);
   }
 
@@ -265,7 +263,7 @@ export class ExtensionManager {
           break;
 
         default:
-          console.warn(`Unknown command: ${(message as any).command}`);
+          console.warn('Unknown command received from webview:', String(message));
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);

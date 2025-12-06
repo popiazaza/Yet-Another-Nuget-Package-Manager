@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { PackageReference, PackageWithLatest, ExtensionMessage, WebviewMessage, ProjectInfo } from '../types';
+import { PackageWithLatest, ExtensionMessage, WebviewMessage, ProjectInfo } from '../types';
 
 export type OnWebviewMessageCallback = (message: WebviewMessage) => Promise<void>;
 export type OnWebviewDisposeCallback = () => void;
@@ -174,11 +174,11 @@ export class WebviewManager {
    * @param projectPath - Path to the project file
    * @param projects - Optional array of all available projects
    */
-  public updatePackageList(packages: PackageWithLatest[], projectPath: string, projects?: ProjectInfo[]): void {
+  public updatePackageList(packageList: PackageWithLatest[], projectPath: string, projects?: ProjectInfo[]): void {
     this.postMessage({
       type: 'packageListUpdate',
       projectPath,
-      data: packages,
+      data: packageList,
       projects,
     });
   }
@@ -217,7 +217,7 @@ export class WebviewManager {
   public sendOperationComplete(
     success: boolean,
     message: string,
-    packages?: PackageReference[],
+    packages?: PackageWithLatest[],
   ): void {
     this.postMessage({
       type: 'operationComplete',

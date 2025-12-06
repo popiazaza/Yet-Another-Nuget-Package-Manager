@@ -134,7 +134,7 @@ export interface NuGetSearchResult {
 export type ExtensionMessage = 
   | { type: 'packageListUpdate'; data: PackageWithLatest[]; packages?: PackageReference[]; projectPath?: string; projects?: ProjectInfo[] }
   | { type: 'error'; message: string; error?: string; details?: string }
-  | { type: 'operationComplete'; success: boolean; message?: string; packages?: PackageReference[] }
+  | { type: 'operationComplete'; success: boolean; message?: string; packages?: PackageWithLatest[] }
   | { type: 'loading'; message: string }
   | { type: 'searchResults'; results: NuGetSearchResult[] }
   | { type: 'packageMetadata'; packageName: string; metadata: PackageMetadata }

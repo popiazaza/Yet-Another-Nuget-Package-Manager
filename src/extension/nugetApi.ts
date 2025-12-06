@@ -3,7 +3,7 @@
  * Fetches latest versions of packages from NuGet.org V3 API
  */
 
-import { PackageMetadata, NuGetSource, UpdateType, VulnerabilityInfo as TypedVulnerabilityInfo } from '../types';
+import { PackageMetadata, NuGetSource, UpdateType } from '../types';
 
 /**
  * Cache entry for package versions

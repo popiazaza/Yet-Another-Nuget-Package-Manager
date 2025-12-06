@@ -111,7 +111,7 @@ const App: React.FC = () => {
       case 'operationComplete':
         if (message.success) {
           if (message.packages) {
-            setPackages(message.packages as any);
+            setPackages(message.packages);
           }
           setError(null);
         } else {
@@ -136,7 +136,7 @@ const App: React.FC = () => {
         break;
 
       default:
-        console.warn('Unknown message type:', (message as any).type);
+        console.warn('Unknown message type:', message.type);
     }
   }, []);
 
@@ -255,7 +255,7 @@ const App: React.FC = () => {
     vscodeApi.postMessage({
       command: 'upgradeAllPackages',
       mode,
-    } as any);
+    });
   };
 
   const handleRefresh = () => {
@@ -413,8 +413,6 @@ const App: React.FC = () => {
                 </div>
                 <PackageList
                   packages={packages}
-                  onRemove={handleRemovePackage}
-                  onUpdate={handleUpdatePackage}
                   onShowDetails={handleSelectInstalledPackage}
                   filterText={installedFilter}
                   selectedPackage={selectedInstalledPackage}
@@ -464,6 +462,12 @@ const App: React.FC = () => {
                   className="search-input"
                 />
                 {isSearching && <div className="search-spinner" />}
+              </div>
+              <div className="prerelease-toggle">
+                <label>
+                  <input type="checkbox" checked={includePrerelease} onChange={(e) => setIncludePrerelease(e.target.checked)} />
+                  Include prerelease
+                </label>
               </div>
             </div>
 
