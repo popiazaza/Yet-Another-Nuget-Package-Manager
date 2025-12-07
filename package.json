@@ -48,10 +48,6 @@
       {
         "command": "yet-another-nuget-package-manager.removePackageInline",
         "title": "Remove NuGet Package"
-      },
-      {
-        "command": "yet-another-nuget-package-manager.chooseProject",
-        "title": "Choose NuGet Project"
       }
     ]
   },

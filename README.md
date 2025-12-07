@@ -1,106 +1,54 @@
 # Yet Another NuGet Package Manager
 
-Yet Another NuGet Package Manager is a Visual Studio Code extension that provides a lightweight, integrated experience
-for browsing, adding, updating, and removing NuGet packages from .NET projects directly inside VS Code.
-
-Features
--+- Browse and search NuGet packages with descriptions, tags, and download stats
-
-- View package metadata (authors, project URL, license expression or license URL)
-- Add packages to the current project or by package id
-- Update installed packages (choose versions and upgrade inline)
-- Remove packages from the selected project
-- View security vulnerabilities and release notes when available
-
-# Yet Another NuGet Package Manager
-
-Yet Another NuGet Package Manager is a Visual Studio Code extension that provides a lightweight, integrated experience
-for browsing, adding, updating, and removing NuGet packages from .NET projects directly inside VS Code.
-
-> Note: This extension integrates a React-based webview for a focused package-management UI and communicates with the
-> extension backend to run `dotnet` CLI operations. Native `confirm()` dialogs are not available inside VS Code webviews;
-> the extension uses in-webview UI for confirmations where needed.
+Yet Another NuGet Package Manager is a Visual Studio Code extension that provides a lightweight, integrated experience for managing NuGet packages in .NET projects using native **CodeLens** actions.
 
 ## Features
 
-- Browse and search NuGet packages from NuGet.org
-- View rich package metadata: authors, description, tags, download counts, project URL, license expression or license URL
-- Add packages to a selected project (choose version or use latest)
-- Update installed packages and choose target versions
-- Remove packages from the selected project
-- View release notes, deprecation notices, and vulnerability information when available
-- Multi-project support: select a project (.csproj) from a dropdown
-- Theme-aware styling and responsive layout for smaller screens
+- **CodeLens-First Design**: Manage packages directly within your `.csproj` files without leaving the editor.
+- **Inline Updates**: See available updates (stable and pre-release) right next to your `<PackageReference>` tags.
+- **Vulnerability Scanning**: Automatically detects and alerts you about security vulnerabilities in your dependencies with severity indicators.
+- **Quick Search & Add**: Easily add new packages by searching NuGet.org via a QuickPick interface.
+- **Detailed Metadata**: View package details, license info, and vulnerability reports.
+- **Version Control**: Upgrade to specific versions, switch between stable/pre-release, or downgrade easily.
+- **Zero Configuration**: Works out of the box by automatically detecting `.csproj` files in your workspace.
 
-## Quick Start
+## Usage
 
-1. Open a workspace containing at least one `.csproj` file.
-2. Open the Command Palette (Ctrl+Shift+P) and run `Open NuGet Package Manager`, or right-click a `.csproj` in Explorer and choose the command.
-3. Select a project (if multiple). Browse or search for packages, then use the right-hand details pane to add, update, or remove packages.
-
-## How it Works
-
-- The extension runs a TypeScript-based backend that executes `dotnet` CLI commands for add/update/remove operations.
-- The UI is a React webview that communicates with the backend using the VS Code webview messaging API.
-- Package metadata and versions are fetched from the NuGet V3 APIs; some requests may be cached for better performance.
+1.  **Open a `.csproj` file**: The extension automatically activates when you open a C# project file.
+2.  **View Actions**: Look for the CodeLens text above or next to your package references.
+    *   **Add Package**: Click "➕ Add Package" at the top of the file to search and install new dependencies.
+    *   **Update**: Click "⬆️ Update to X.X.X" to instantly upgrade a package.
+    *   **Vulnerabilities**: Click on vulnerability warnings (e.g., "⚠️ 2 Vulnerabilities") to view details and severity.
+    *   **Manage**: Use "📋 Select version" to choose specific versions or "🔗 NuGet" to view the package on NuGet.org.
+    *   **Remove**: Click "🗑️ Remove" to uninstall a package.
 
 ## Commands
 
-- `yet-another-nuget-package-manager.openPackageManager` — Open the package manager UI
-- `yet-another-nuget-package-manager.refresh` — Refresh package list
-- `yet-another-nuget-package-manager.updatePackageInline` — Update a package inline
-- `yet-another-nuget-package-manager.searchAndAddPackage` — Open search/add modal
+Most features are accessible via CodeLens, but the following commands are also available in the Command Palette (Ctrl+Shift+P):
+
+- `Update NuGet Package`: Trigger an inline update.
+- `Search and Add NuGet Package`: Open the search interface to add a dependency.
+- `Show NuGet Package Vulnerabilities`: View security details for a package.
+- `Upgrade All NuGet Packages`: Update all packages with available upgrades in the current project.
+- `Choose NuGet Project`: Quickly switch between multiple `.csproj` files in your workspace.
 
 ## Development
 
-Install dependencies and build the extension and webview:
+To build and run the extension locally:
 
-```bash
-bun install
-bun run build
-```
+1.  Install dependencies:
+    ```bash
+    npm install
+    ```
 
-Watch mode (for iterative development):
+2.  Build the extension:
+    ```bash
+    npm run build
+    ```
 
-```bash
-bun run watch
-```
-
-Run the extension in the VS Code debugger (F5) to test in a development host window.
-
-## Testing
-
-Create a small test project to try the extension:
-
-```bash
-dotnet new console -o TestProject
-cd TestProject
-code .
-```
-
-Open the folder in VS Code, run the extension (F5), and test adding/updating/removing packages.
-
-## Release Notes
-
-### 0.0.4
-
-- Documentation updates and small UX improvements
-
-### 0.0.3
-
-- Searchable Add Package modal with real-time NuGet search
-- Rich package details (authors, descriptions, downloads, URLs, licenses)
-- Release notes and deprecation notices in details view
-- Multi-project support and custom NuGet sources
-
-### 0.0.2
-
-- CodeLens integration for inline package status and quick actions
-- Vulnerability warnings and pre-release support
-
-### 0.0.1
-
-- Initial release: package discovery, add/update/remove operations, file watching
+3.  Run in VS Code:
+    *   Press `F5` to open a new Extension Development Host window.
+    *   Open a folder containing a `.NET` project to test the features.
 
 ## License
 

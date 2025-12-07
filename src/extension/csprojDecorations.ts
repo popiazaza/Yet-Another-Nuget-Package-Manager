@@ -13,7 +13,7 @@ import {
   VulnerabilityInfo,
 } from "./nugetApi";
 import { updatePackage, addPackage, removePackage } from "./dotnetCli";
-import { parseCsproj, findCsprojFiles } from "./csprojParser";
+import { parseCsproj } from "./csprojParser";
 
 /**
  * Format a NuGet vulnerability version range into a human-readable string
@@ -168,14 +168,6 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
 
     // Add a CodeLens at the top of the file to choose/switch project
     const firstLine = new vscode.Range(0, 0, 0, 0);
-    codeLenses.push(
-      new vscode.CodeLens(firstLine, {
-        title: "📂 Choose Project",
-        command: "yet-another-nuget-package-manager.chooseProject",
-        arguments: [document.uri.fsPath],
-        tooltip: "Switch to a different .csproj in workspace",
-      }),
-    );
     codeLenses.push(
       new vscode.CodeLens(firstLine, {
         title: "➕ Add Package",
@@ -576,49 +568,6 @@ async function handleRemovePackageInline(
   }
 }
 
-async function handleChooseProject(currentProjectPath: string): Promise<void> {
-  const workspaceFolders = vscode.workspace.workspaceFolders;
-  if (!workspaceFolders || workspaceFolders.length === 0) {
-    vscode.window.showWarningMessage("No workspace folder open");
-    return;
-  }
-
-  const allProjects: string[] = [];
-  for (const folder of workspaceFolders) {
-    const projects = await findCsprojFiles(folder.uri.fsPath);
-    allProjects.push(...projects);
-  }
-
-  if (allProjects.length === 0) {
-    vscode.window.showWarningMessage("No .csproj files found in workspace");
-    return;
-  }
-
-  if (allProjects.length === 1) {
-    vscode.window.showInformationMessage("Only one project in workspace");
-    return;
-  }
-
-  const items: vscode.QuickPickItem[] = allProjects.map((projectPath) => {
-    const parts = projectPath.split(/[\\/]/);
-    const name = parts[parts.length - 1] || "Unknown";
-    return {
-      label: name.replace(".csproj", ""),
-      description: projectPath === currentProjectPath ? "(current)" : "",
-      detail: projectPath,
-    };
-  });
-
-  const selected = await vscode.window.showQuickPick(items, {
-    title: "Choose Project",
-    placeHolder: "Select a .csproj file to open",
-  });
-
-  if (selected && selected.detail && selected.detail !== currentProjectPath) {
-    const doc = await vscode.workspace.openTextDocument(selected.detail);
-    await vscode.window.showTextDocument(doc);
-  }
-}
 
 /**
  * Handle selecting a specific package version
@@ -1076,12 +1025,6 @@ export function registerCsprojFeatures(context: vscode.ExtensionContext): void {
     ),
   );
 
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      "yet-another-nuget-package-manager.chooseProject",
-      handleChooseProject,
-    ),
-  );
 
   // Refresh CodeLenses when a .csproj file is opened
   context.subscriptions.push(
