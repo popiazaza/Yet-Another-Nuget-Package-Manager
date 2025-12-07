@@ -77,7 +77,7 @@ const App: React.FC = () => {
   const [selectedInstalledVersion, setSelectedInstalledVersion] = useState("");
   const [installedFilter, setInstalledFilter] = useState("");
   const [operationInProgress, setOperationInProgress] = useState<string | null>(
-    null,
+    null
   ); // packageName being operated on
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -85,7 +85,7 @@ const App: React.FC = () => {
 
   // Get set of installed package names for quick lookup
   const installedPackageNames = new Set(
-    packages.map((p) => p.name.toLowerCase()),
+    packages.map((p) => p.name.toLowerCase())
   );
 
   // Keep ref in sync with state
@@ -156,7 +156,7 @@ const App: React.FC = () => {
           console.warn("Unknown message type:", message.type);
       }
     },
-    [],
+    []
   );
 
   // Set up message listener
@@ -165,7 +165,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener(
         "message",
-        handleExtensionMessage as EventListener,
+        handleExtensionMessage as EventListener
       );
     };
   }, [handleExtensionMessage]);
@@ -205,7 +205,7 @@ const App: React.FC = () => {
         setSearchResults([]);
       }
     },
-    [includePrerelease],
+    [includePrerelease]
   );
 
   // Re-search when prerelease toggle changes
@@ -304,7 +304,7 @@ const App: React.FC = () => {
   // Count packages with updates and vulnerabilities
   const updatesAvailable = packages.filter((p) => p.updateAvailable).length;
   const vulnerablePackages = packages.filter(
-    (p) => p.vulnerabilities && p.vulnerabilities.length > 0,
+    (p) => p.vulnerabilities && p.vulnerabilities.length > 0
   ).length;
 
   return (
@@ -330,11 +330,9 @@ const App: React.FC = () => {
         </div>
         <div className="header-actions">
           {vulnerablePackages > 0 && (
-            <span
-              className="vuln-count"
-              title={`${vulnerablePackages} package(s) with vulnerabilities`}
-            >
-              ⚠️ {vulnerablePackages}
+            <span className="vuln-count">
+              {vulnerablePackages} package{vulnerablePackages !== 1 ? "s" : ""}{" "}
+              with vulnerabilities
             </span>
           )}
           <button
@@ -342,7 +340,7 @@ const App: React.FC = () => {
             onClick={handleRefresh}
             disabled={loading}
           >
-            {loading ? "⟳ Refreshing..." : "⟳ Refresh"}
+            {loading ? "🔄️ Refreshing..." : "🔄️ Refresh"}
           </button>
         </div>
       </header>
@@ -504,7 +502,7 @@ const App: React.FC = () => {
                     checked={includePrerelease}
                     onChange={(e) => setIncludePrerelease(e.target.checked)}
                   />
-                  Include prerelease
+                  Include Pre-Release
                 </label>
               </div>
             </div>
@@ -524,12 +522,14 @@ const App: React.FC = () => {
               )}
               {searchResults.map((pkg) => {
                 const isPackageInstalled = installedPackageNames.has(
-                  pkg.id.toLowerCase(),
+                  pkg.id.toLowerCase()
                 );
                 return (
                   <div
                     key={pkg.id}
-                    className={`search-result-item ${selectedSearchPackage?.id === pkg.id ? "selected" : ""}`}
+                    className={`search-result-item ${
+                      selectedSearchPackage?.id === pkg.id ? "selected" : ""
+                    }`}
                     onClick={() => handleSelectSearchPackage(pkg)}
                   >
                     <div className="search-result-icon">
@@ -602,13 +602,13 @@ const App: React.FC = () => {
                 onAdd={handleAddPackage}
                 operationInProgress={operationInProgress}
                 isAlreadyInstalled={installedPackageNames.has(
-                  selectedSearchPackage.id.toLowerCase(),
+                  selectedSearchPackage.id.toLowerCase()
                 )}
                 installedVersion={
                   packages.find(
                     (p) =>
                       p.name.toLowerCase() ===
-                      selectedSearchPackage.id.toLowerCase(),
+                      selectedSearchPackage.id.toLowerCase()
                   )?.currentVersion
                 }
                 formatDownloadsShort={formatDownloadsShort}

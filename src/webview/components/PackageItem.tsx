@@ -67,10 +67,10 @@ const PackageItem: React.FC<PackageItemProps> = ({
     ? pkg.updateType === "major"
       ? "Major"
       : pkg.updateType === "minor"
-        ? "Minor"
-        : pkg.updateType === "patch"
-          ? "Patch"
-          : "Update"
+      ? "Minor"
+      : pkg.updateType === "patch"
+      ? "Patch"
+      : "Update"
     : "";
 
   return (
@@ -124,24 +124,18 @@ const PackageItem: React.FC<PackageItemProps> = ({
       </div>
       <div className="search-result-badges">
         {hasUpdate ? (
-          <span
-            className={`upgrade-badge ${pkg.updateType || "update"}`}
-            title={`Update available: ${pkg.latestVersion}`}
-          >
-            ⬆️ {updateTypeText}
+          <span className="upgrade-badge">
+            {updateTypeText} update: {pkg.latestVersion}
           </span>
         ) : (
-          <span className="status-uptodate" title="Package is up to date">
-            ✅ Latest
-          </span>
+          <span className="status-uptodate">Latest</span>
         )}
 
         {hasVulnerabilities && (
-          <span
-            className="vulnerability-badge"
-            title={`${pkg.vulnerabilities!.length} vulnerability(ies)`}
-          >
-            ⚠️ {pkg.vulnerabilities!.length} {getSeverityText(maxSeverity)}
+          <span className="vulnerability-badge">
+            {pkg.vulnerabilities!.length} vulnerabilit
+            {pkg.vulnerabilities!.length !== 1 ? "ies" : "y"}{" "}
+            {getSeverityText(maxSeverity)}
           </span>
         )}
       </div>

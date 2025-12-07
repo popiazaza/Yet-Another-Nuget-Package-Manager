@@ -41,6 +41,7 @@
     --vscode-editorLineNumber-foreground,
     #858585
   );
+  --vscode-textLink-foreground: var(--vscode-textLink-foreground, #3794ff);
   --update-major: #ff6b6b;
   --update-minor: #ffd93d;
   --update-patch: #6bcb77;
@@ -471,7 +472,7 @@ body {
 }
 
 .meta-link {
-  color: var(--vscode-button-background);
+  color: var(--vscode-textLink-foreground);
   text-decoration: none;
 }
 
@@ -484,7 +485,7 @@ body {
 }
 
 .project-url-inline a {
-  color: var(--vscode-button-background);
+  color: var(--vscode-textLink-foreground);
   text-decoration: none;
   word-break: break-all;
 }
@@ -539,7 +540,7 @@ body {
 }
 
 .external-link {
-  color: var(--vscode-button-background);
+  color: var(--vscode-textLink-foreground);
   text-decoration: none;
   font-size: 12px;
 }
@@ -840,6 +841,11 @@ body {
 }
 
 .status-uptodate {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+  background-color: rgba(107, 203, 119, 0.15);
   color: var(--update-patch);
 }
 
@@ -983,7 +989,7 @@ body {
 
 .detail-link {
   font-size: 13px;
-  color: var(--vscode-button-background);
+  color: var(--vscode-textLink-foreground);
   text-decoration: none;
   word-break: break-all;
 }
@@ -1066,7 +1072,7 @@ body {
 }
 
 .vuln-link {
-  color: var(--vscode-button-background);
+  color: var(--vscode-textLink-foreground);
   text-decoration: none;
   font-size: 12px;
 }
@@ -1081,7 +1087,7 @@ body {
 }
 
 .nuget-link a {
-  color: var(--vscode-button-background);
+  color: var(--vscode-textLink-foreground);
   text-decoration: none;
   font-size: 12px;
 }
@@ -1351,7 +1357,7 @@ body {
 }
 
 .vuln-details-link {
-  color: var(--vscode-button-background);
+  color: var(--vscode-textLink-foreground);
   text-decoration: none;
   font-size: 12px;
 }
@@ -1386,7 +1392,7 @@ body {
 }
 
 .info-item a {
-  color: var(--vscode-button-background);
+  color: var(--vscode-textLink-foreground);
   text-decoration: none;
   font-size: 12px;
   word-break: break-all;
@@ -1564,6 +1570,8 @@ body {
   padding: 2px 6px;
   border-radius: 3px;
   font-weight: 500;
+  background-color: rgba(14, 99, 156, 0.15);
+  color: #4fc3f7;
 }
 
 .upgrade-badge.major {
@@ -1791,7 +1799,7 @@ body {
 }
 
 .form-help a {
-  color: var(--vscode-button-background);
+  color: var(--vscode-textLink-foreground);
   text-decoration: none;
 }
 
