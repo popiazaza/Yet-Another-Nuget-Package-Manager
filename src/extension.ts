@@ -10,11 +10,10 @@ export async function activate(
   try {
     registerCsprojFeatures(context);
 
-    // Register completion provider for .csproj files
     const completionProvider = vscode.languages.registerCompletionItemProvider(
       { scheme: "file", language: "xml", pattern: "**/*.csproj" },
       new NuGetCompletionItemProvider(),
-      '"', // Trigger characters
+      '"',
     );
     context.subscriptions.push(completionProvider);
 
