@@ -125,7 +125,7 @@ const PackageItem: React.FC<PackageItemProps> = ({
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
             {hasUpdate ? (
               <span className="upgrade-badge">
-                {updateTypeText} {pkg.latestVersion}
+                {updateTypeText} update: {pkg.latestVersion}
               </span>
             ) : (
               <span className="status-uptodate">Latest</span>

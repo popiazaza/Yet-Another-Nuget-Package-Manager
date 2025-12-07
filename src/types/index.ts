@@ -128,7 +128,19 @@ export interface NuGetSearchResult {
   projectUrl?: string;
   licenseUrl?: string;
   licenseExpression?: string;
+  items?: string[];
   tags?: string[];
+  releaseNotes?: string;
+  publishedDate?: string;
+  owners?: string[];
+  deprecation?: {
+    message?: string;
+    reasons?: string[];
+    alternatePackage?: {
+      id: string;
+      range?: string;
+    };
+  };
 }
 
 export type ExtensionMessage =

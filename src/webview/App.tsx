@@ -141,6 +141,35 @@ const App: React.FC = () => {
           setIsSearching(false);
           break;
 
+        case "packageMetadata":
+          if (message.packageName === selectedSearchPackage?.id) {
+              setSelectedSearchPackage(prev => prev ? ({...prev, ...message.metadata}) : null);
+          }
+          if (message.packageName === selectedInstalledPackageRef.current?.name) {
+             // For installed packages, we might want to store this metadata locally or update the package object
+             // But for now, let's just update the search data if it matches? 
+             // Actually currently installedPackage doesn't have a place to store extra metadata easily in the list
+             // except via installedPackageSearchData which is NuGetSearchResult
+             setInstalledPackageSearchData(prev => prev ? ({...prev, ...message.metadata}) : {
+                 id: message.packageName,
+                 version: message.metadata.version,
+                 description: message.metadata.description,
+                 authors: message.metadata.authors,
+                 totalDownloads: message.metadata.totalDownloads,
+                 verified: message.metadata.verified,
+                 iconUrl: message.metadata.iconUrl,
+                 projectUrl: message.metadata.projectUrl,
+                 licenseUrl: message.metadata.licenseUrl,
+                 tags: message.metadata.tags,
+                 // Extended fields
+                 releaseNotes: message.metadata.releaseNotes,
+                 publishedDate: message.metadata.publishedDate,
+                 owners: message.metadata.owners,
+                 deprecation: message.metadata.deprecation
+             });
+          }
+          break;
+
         case "packageVersions":
           if (
             message.packageName === selectedInstalledPackageRef.current?.name
@@ -222,6 +251,11 @@ const App: React.FC = () => {
   const handleSelectSearchPackage = (pkg: NuGetSearchResult) => {
     setSelectedSearchPackage(pkg);
     setSelectedVersion(pkg.version);
+    // Request richer metadata
+    vscodeApi.postMessage({
+      command: "getPackageMetadata",
+      packageName: pkg.id,
+    } as WebviewMessage);
   };
 
   const handleSelectInstalledPackage = (pkg: PackageWithLatest) => {
@@ -232,6 +266,11 @@ const App: React.FC = () => {
     // Request versions for this package
     vscodeApi.postMessage({
       command: "getPackageVersions",
+      packageName: pkg.name,
+    } as WebviewMessage);
+    // Request richer metadata
+    vscodeApi.postMessage({
+      command: "getPackageMetadata",
       packageName: pkg.name,
     } as WebviewMessage);
   };

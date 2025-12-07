@@ -1,5 +1,6 @@
 import React from "react";
 import { PackageWithLatest, NuGetSearchResult } from "../../types";
+import { formatVulnerabilityRange } from "../utils/versionUtils";
 
 interface PackageDetailsPanelProps {
   // For installed packages
@@ -225,8 +226,59 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
           {/* Tags */}
 {/* Tags handled in header */}
         </div>
-
         <div className="details-panel-body">
+{/* Deprecation Warning */}
+          {(installedPackage?.metadata?.deprecation || searchPackage?.deprecation) && (
+            <div className="deprecation-warning">
+                <span className="warning-icon">⚠️</span>
+                <div className="warning-content">
+                    <strong>This package has been deprecated.</strong>
+                    <p>{installedPackage?.metadata?.deprecation?.message || searchPackage?.deprecation?.message || "No deprecation message provided."}</p>
+                    {(installedPackage?.metadata?.deprecation?.alternatePackage || searchPackage?.deprecation?.alternatePackage) && (
+                        <div className="alternate-package">
+                            <span>Alternate: </span>
+                            <code>
+                                {installedPackage?.metadata?.deprecation?.alternatePackage?.id || searchPackage?.deprecation?.alternatePackage?.id}
+                            </code>
+                        </div>
+                    )}
+                </div>
+            </div>
+          )}
+
+          {/* Release Notes */}
+          {(installedPackage?.metadata?.releaseNotes || searchPackage?.releaseNotes) && (
+             <div className="details-panel-section">
+                <h3>Release Notes</h3>
+                <div className="release-notes-content">
+                    {installedPackage?.metadata?.releaseNotes || searchPackage?.releaseNotes}
+                </div>
+             </div>
+          )}
+
+          {/* Additional Info Grid */}
+           <div className="details-panel-section">
+                <h3>Additional Information</h3>
+                <div className="info-grid">
+                    {(installedPackage?.metadata?.publishedDate || searchPackage?.publishedDate) && (
+                        <div className="info-item">
+                            <span className="info-label">Published</span>
+                            <span className="info-value">
+                                {new Date(installedPackage?.metadata?.publishedDate || searchPackage?.publishedDate || "").toLocaleDateString()}
+                            </span>
+                        </div>
+                    )}
+                    {(installedPackage?.metadata?.owners || searchPackage?.owners) && (
+                        <div className="info-item">
+                            <span className="info-label">Owners</span>
+                            <span className="info-value">
+                                {(installedPackage?.metadata?.owners || (Array.isArray(searchPackage?.owners) ? searchPackage?.owners : [searchPackage?.owners])).join(", ")}
+                            </span>
+                        </div>
+                    )}
+                </div>
+           </div>
+
           {/* Version Section - Unified for both Installed and Browse */}
           <div className="details-panel-section">
             <h3>Version Selection</h3>
@@ -272,7 +324,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
                         {isInstalled && latestPrereleaseVersion && (
                         <option value={latestPrereleaseVersion}>
                             {latestPrereleaseVersion} (Pre-Release)
-                        </option>
+                            </option>
                         )}
                         <option
                         value={currentVersion || searchPackage?.version || ""}
@@ -331,7 +383,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
                         }`}
                       ></span>
                       <span className="vuln-versions">
-                        Affects: {vuln.versions}
+                        Affects: {formatVulnerabilityRange(vuln.versions)}
                       </span>
                       <a
                         href={vuln.url}
