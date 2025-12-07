@@ -67,10 +67,10 @@ const PackageItem: React.FC<PackageItemProps> = ({
     ? pkg.updateType === "major"
       ? "Major"
       : pkg.updateType === "minor"
-      ? "Minor"
-      : pkg.updateType === "patch"
-      ? "Patch"
-      : "Update"
+        ? "Minor"
+        : pkg.updateType === "patch"
+          ? "Patch"
+          : "Update"
     : "";
 
   return (
@@ -96,7 +96,10 @@ const PackageItem: React.FC<PackageItemProps> = ({
           <span className="search-result-name">
             {pkg.name}
             {pkg.metadata?.verified && (
-              <span className="verified-badge-codicon" title="Verified owner"></span>
+              <span
+                className="verified-badge-codicon"
+                title="Verified owner"
+              ></span>
             )}
           </span>
           <span className="search-result-version">{pkg.currentVersion}</span>

@@ -1,5 +1,5 @@
 /* Codicon font import */
-@import '@vscode/codicons/dist/codicon.css';
+@import "@vscode/codicons/dist/codicon.css";
 
 /* Main App Styling */
 * {
@@ -1487,7 +1487,7 @@ body {
 }
 
 .prerelease-toggle input[type="checkbox"]:checked::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 5px;
   top: 2px;
@@ -1978,41 +1978,41 @@ body {
 
 /* Codicon utility classes */
 .codicon {
-  font-family: 'codicon';
+  font-family: "codicon";
   font-size: inherit;
   line-height: 1;
   display: inline-block;
 }
 
 .codicon-package::before {
-  content: '\\eb29';
+  content: "\\eb29";
 }
 
 .codicon-verified-filled::before {
-  content: '\\eb85';
+  content: "\\eb85";
 }
 
 .codicon-search::before {
-  content: '\\ea6d';
+  content: "\\ea6d";
 }
 
 .codicon-warning::before {
-  content: '\\ea6c';
+  content: "\\ea6c";
 }
 
 .codicon-link-external::before {
-  content: '\\eb09';
+  content: "\\eb09";
 }
 
 /* Default package icon using codicon */
 .default-icon-codicon {
   font-size: 32px;
   color: var(--vscode-editorLineNumber-foreground);
-  font-family: 'codicon';
+  font-family: "codicon";
 }
 
 .default-icon-codicon::before {
-  content: '\\eb29';
+  content: "\\eb29";
 }
 
 /* Verified badge with codicon */
@@ -2027,11 +2027,11 @@ body {
   border-radius: 50%;
   font-size: 10px;
   flex-shrink: 0;
-  font-family: 'codicon';
+  font-family: "codicon";
 }
 
 .verified-badge-codicon::before {
-  content: '\\eab2';
+  content: "\\eab2";
 }
 
 /* Placeholder icon using codicon */
@@ -2039,13 +2039,13 @@ body {
   font-size: 48px;
   opacity: 0.5;
   color: var(--vscode-editorLineNumber-foreground);
-  font-family: 'codicon';
+  font-family: "codicon";
 }
 
 .placeholder-icon-codicon.package::before {
-  content: '\\eb29';
+  content: "\\eb29";
 }
 
 .placeholder-icon-codicon.search::before {
-  content: '\\ea6d';
+  content: "\\ea6d";
 }

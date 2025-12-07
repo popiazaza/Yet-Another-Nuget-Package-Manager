@@ -81,7 +81,11 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
   if (!installedPackage && !searchPackage) {
     return (
       <div className="details-panel-placeholder">
-        <div className={`placeholder-icon-codicon ${isBrowseOnly ? 'search' : 'package'}`}></div>
+        <div
+          className={`placeholder-icon-codicon ${
+            isBrowseOnly ? "search" : "package"
+          }`}
+        ></div>
         <p>Select a package to view details</p>
       </div>
     );
@@ -106,7 +110,9 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
             <h2>
               {packageName}
               {isVerified && (
-                <span className="verified-badge-codicon" title="Verified owner"></span>
+                <span className="verified-badge" title="Verified owner">
+                  ✓
+                </span>
               )}
             </h2>
             {authors.length > 0 && (
@@ -126,7 +132,8 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
         <div className="package-meta-inline">
           {totalDownloads !== undefined && totalDownloads > 0 && (
             <span className="meta-item">
-              <span className="meta-label">Downloads:</span> {formatDownloadsFull(totalDownloads)}
+              <span className="meta-label">Downloads:</span>{" "}
+              {formatDownloadsFull(totalDownloads)}
             </span>
           )}
           {isInstalled && installedPackage?.metadata?.publishedDate && (
@@ -138,7 +145,9 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
             </span>
           )}
           {licenseExpression ? (
-            <span className="meta-item"><span className="meta-label">License:</span> {licenseExpression}</span>
+            <span className="meta-item">
+              <span className="meta-label">License:</span> {licenseExpression}
+            </span>
           ) : (
             licenseUrl && (
               <a
@@ -258,12 +267,12 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
                     <span
                       className={`severity-badge-inline ${
                         vuln.severity === 3
-                          ? 'severity-critical'
+                          ? "severity-critical"
                           : vuln.severity === 2
-                            ? 'severity-high'
+                            ? "severity-high"
                             : vuln.severity === 1
-                              ? 'severity-medium'
-                              : 'severity-low'
+                              ? "severity-medium"
+                              : "severity-low"
                       }`}
                     ></span>
                     <span className="vuln-versions">
@@ -292,9 +301,13 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
             onClick={() => onRemove(packageName)}
             disabled={!!operationInProgress}
           >
-            {operationInProgress === packageName
-              ? <><span className="button-spinner"></span>Removing...</>
-              : "Remove Package"}
+            {operationInProgress === packageName ? (
+              <>
+                <span className="button-spinner"></span>Removing...
+              </>
+            ) : (
+              "Remove Package"
+            )}
           </button>
         )}
         {isInstalled &&
@@ -306,9 +319,13 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
               onClick={() => onUpdate(packageName, selectedVersion)}
               disabled={!!operationInProgress}
             >
-              {operationInProgress === packageName
-                ? <><span className="button-spinner"></span>Updating...</>
-                : `Change to ${selectedVersion}`}
+              {operationInProgress === packageName ? (
+                <>
+                  <span className="button-spinner"></span>Updating...
+                </>
+              ) : (
+                `Change to ${selectedVersion}`
+              )}
             </button>
           )}
         {isBrowseOnly &&
@@ -326,9 +343,13 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
               onClick={() => onAdd(packageName, selectedVersion)}
               disabled={!!operationInProgress}
             >
-              {operationInProgress === packageName
-                ? <><span className="button-spinner"></span>Adding...</>
-                : `Add ${packageName}`}
+              {operationInProgress === packageName ? (
+                <>
+                  <span className="button-spinner"></span>Adding...
+                </>
+              ) : (
+                `Add ${packageName}`
+              )}
             </button>
           ))}
       </div>
