@@ -79,7 +79,7 @@ function parsePackageReferences(
   const lines = text.split("\n");
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
     const line = lines[lineIndex];
-    
+
     // Check if line contains PackageReference
     if (!line.includes("<PackageReference")) {
       continue;
@@ -93,7 +93,7 @@ function parsePackageReferences(
     }
 
     const attributes = tagMatch[1];
-    
+
     // Extract Include and Version using flexible regex
     const includeMatch = /Include\s*=\s*["']([^"']+)["']/i.exec(attributes);
     const versionMatch = /Version\s*=\s*["']([^"']+)["']/i.exec(attributes);
@@ -172,9 +172,7 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
     this._onDidChangeCodeLenses.fire();
   }
 
-  public provideCodeLenses(
-    document: vscode.TextDocument,
-  ): vscode.CodeLens[] {
+  public provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {
     if (!document.fileName.endsWith(".csproj")) {
       return [];
     }
@@ -584,7 +582,6 @@ async function handleRemovePackageInline(
   }
 }
 
-
 /**
  * Handle selecting a specific package version
  */
@@ -990,7 +987,7 @@ export function registerCsprojFeatures(context: vscode.ExtensionContext): void {
       codeLensProvider,
     ),
   );
-  
+
   // Clean up cache when documents are closed to prevent memory leaks
   context.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument((doc) => {
@@ -1047,7 +1044,6 @@ export function registerCsprojFeatures(context: vscode.ExtensionContext): void {
       handleRemovePackageInline,
     ),
   );
-
 
   // Refresh CodeLenses when a .csproj file is opened
   context.subscriptions.push(

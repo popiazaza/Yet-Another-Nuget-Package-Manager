@@ -440,7 +440,7 @@ export async function getPackageVersions(packageId: string): Promise<string[]> {
   try {
     // Fetch from NuGet API
     const url = `${NUGET_API_BASE}/${packageId.toLowerCase()}/index.json`;
-    
+
     // Check for pending request
     const pending = pendingRequests.get(packageId.toLowerCase());
     if (pending) {
