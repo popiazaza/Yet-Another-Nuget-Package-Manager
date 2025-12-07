@@ -2,7 +2,7 @@
   "name": "yet-another-nuget-package-manager",
   "displayName": "Yet Another Nuget Package Manager",
   "description": "Yet Another Nuget Package Manager for Visual Studio Code",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "publisher": "KaruhutKomol",
   "repository": {
     "type": "git",
@@ -21,14 +21,6 @@
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
-      {
-        "command": "yet-another-nuget-package-manager.openPackageManager",
-        "title": "Open NuGet Package Manager"
-      },
-      {
-        "command": "yet-another-nuget-package-manager.refresh",
-        "title": "Refresh Packages"
-      },
       {
         "command": "yet-another-nuget-package-manager.updatePackageInline",
         "title": "Update NuGet Package"
@@ -52,24 +44,22 @@
       {
         "command": "yet-another-nuget-package-manager.upgradeAllPackages",
         "title": "Upgrade All NuGet Packages"
+      },
+      {
+        "command": "yet-another-nuget-package-manager.removePackageInline",
+        "title": "Remove NuGet Package"
+      },
+      {
+        "command": "yet-another-nuget-package-manager.chooseProject",
+        "title": "Choose NuGet Project"
       }
-    ],
-    "menus": {
-      "explorer/context": [
-        {
-          "command": "yet-another-nuget-package-manager.openPackageManager",
-          "when": "resourceFilename =~ /\\.csproj$/",
-          "group": "1_modification"
-        }
-      ]
-    }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run build",
-    "build": "rimraf dist && vite build && npm run build:extension",
-    "build:webview": "vite build",
+    "build": "rimraf dist && npm run build:extension",
     "build:extension": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify",
-    "watch": "concurrently \"npm run build:extension -- --watch\" \"vite build --watch\"",
+    "watch": "npm run build:extension -- --watch",
     "pretest": "npm run build && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test"
@@ -77,28 +67,18 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.19.1",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3",
     "@types/vscode": "~1.100.0",
     "@types/xml2js": "^0.4.14",
     "@typescript-eslint/eslint-plugin": "^8.48.1",
     "@typescript-eslint/parser": "^8.48.1",
     "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
-    "concurrently": "^9.2.1",
     "eslint": "^9.39.1",
     "rimraf": "^6.1.2",
-    "typescript": "^5.9.3",
-    "vite": "^7.2.6"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@vitejs/plugin-react-swc": "^4.2.2",
-    "@vscode/codicons": "^0.0.43",
     "esbuild": "^0.25.12",
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1",
-    "vite-plugin-top-level-await": "^1.6.0",
-    "vite-plugin-wasm": "^3.5.0",
     "xml2js": "^0.6.2"
   }
 }

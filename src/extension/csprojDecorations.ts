@@ -1,8 +1,3 @@
-/**
- * CodeLens for .csproj files
- * Shows package version status (like Rider IDE) and provides clickable upgrade links
- */
-
 import * as vscode from "vscode";
 import {
   getLatestVersion,
@@ -17,8 +12,44 @@ import {
   getUpdateType,
   VulnerabilityInfo,
 } from "./nugetApi";
-import { updatePackage, addPackage } from "./dotnetCli";
-import { parseCsproj } from "./csprojParser";
+import { updatePackage, addPackage, removePackage } from "./dotnetCli";
+import { parseCsproj, findCsprojFiles } from "./csprojParser";
+
+/**
+ * Format a NuGet vulnerability version range into a human-readable string
+ */
+function formatVulnerabilityRange(range: string): string {
+  if (!range) {
+    return "";
+  }
+  const trimmed = range.trim();
+  const intervalMatch = trimmed.match(
+    /^([\[\(])([^,]*),?\s*([^\]\)]*)([\]\)])$/,
+  );
+  if (!intervalMatch) {
+    return trimmed;
+  }
+
+  const [, leftBracket, minVer, maxVer, rightBracket] = intervalMatch;
+  const min = minVer.trim();
+  const max = maxVer.trim();
+  const minInclusive = leftBracket === "[";
+  const maxInclusive = rightBracket === "]";
+
+  if (min && max && min === max && minInclusive && maxInclusive) {
+    return `Exact ${min}`;
+  }
+  if (min && !max) {
+    return `${minInclusive ? ">= " : "> "}${min}`;
+  }
+  if (!min && max) {
+    return `${maxInclusive ? "<= " : "< "}${max}`;
+  }
+  if (min && max) {
+    return `${minInclusive ? ">=" : ">"} ${min} && ${maxInclusive ? "<=" : "<"} ${max}`;
+  }
+  return trimmed;
+}
 
 // Cache for package version info per document
 interface PackageVersionInfo {
@@ -127,7 +158,6 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
 
   public provideCodeLenses(
     document: vscode.TextDocument,
-    _token: vscode.CancellationToken,
   ): vscode.CodeLens[] {
     if (!document.fileName.endsWith(".csproj")) {
       return [];
@@ -136,14 +166,14 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
     const codeLenses: vscode.CodeLens[] = [];
     const documentUri = document.uri.toString();
 
-    // Add a CodeLens at the top of the file to open NuGet Manager
+    // Add a CodeLens at the top of the file to choose/switch project
     const firstLine = new vscode.Range(0, 0, 0, 0);
     codeLenses.push(
       new vscode.CodeLens(firstLine, {
-        title: "📦 Open NuGet Package Manager",
-        command: "yet-another-nuget-package-manager.openPackageManager",
-        arguments: [document.uri],
-        tooltip: "Open the NuGet Package Manager for this project",
+        title: "📂 Choose Project",
+        command: "yet-another-nuget-package-manager.chooseProject",
+        arguments: [document.uri.fsPath],
+        tooltip: "Switch to a different .csproj in workspace",
       }),
     );
     codeLenses.push(
@@ -195,7 +225,7 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
         const label = getSeverityLabel(highestSeverity);
         codeLenses.push(
           new vscode.CodeLens(range, {
-            title: `${emoji} ${pkg.vulnerabilities.length} Vulnerability${pkg.vulnerabilities.length > 1 ? "ies" : ""} (${label})`,
+            title: `${emoji} ${pkg.vulnerabilities.length} ${pkg.vulnerabilities.length > 1 ? "Vulnerabilities" : "Vulnerability"} (${label})`,
             command: "yet-another-nuget-package-manager.showVulnerabilities",
             arguments: [pkg.packageName, pkg.vulnerabilities],
             tooltip: `${pkg.packageName} has known security vulnerabilities. Click for details.`,
@@ -270,6 +300,16 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
             tooltip: `View ${pkg.packageName} on NuGet.org`,
           }),
         );
+
+        // Remove package CodeLens
+        codeLenses.push(
+          new vscode.CodeLens(range, {
+            title: `🗑️ Remove`,
+            command: "yet-another-nuget-package-manager.removePackageInline",
+            arguments: [document.uri.fsPath, pkg.packageName],
+            tooltip: `Remove ${pkg.packageName} from project`,
+          }),
+        );
       } else if (
         pkg.latestVersion &&
         isVersionUpToDate(pkg.currentVersion, pkg.latestVersion) &&
@@ -321,6 +361,16 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
             command: "yet-another-nuget-package-manager.openNugetPage",
             arguments: [pkg.packageName],
             tooltip: `View ${pkg.packageName} on NuGet.org`,
+          }),
+        );
+
+        // Remove package CodeLens
+        codeLenses.push(
+          new vscode.CodeLens(range, {
+            title: `🗑️ Remove`,
+            command: "yet-another-nuget-package-manager.removePackageInline",
+            arguments: [document.uri.fsPath, pkg.packageName],
+            tooltip: `Remove ${pkg.packageName} from project`,
           }),
         );
       } else if (pkg.isChecking) {
@@ -464,7 +514,7 @@ async function handleShowVulnerabilities(
 ): Promise<void> {
   const items: vscode.QuickPickItem[] = vulnerabilities.map((vuln) => ({
     label: `${getSeverityEmoji(vuln.severity)} ${getSeverityLabel(vuln.severity)}`,
-    description: vuln.versions,
+    description: formatVulnerabilityRange(vuln.versions),
     detail: vuln.url,
   }));
 
@@ -475,6 +525,98 @@ async function handleShowVulnerabilities(
 
   if (selected && selected.detail) {
     vscode.env.openExternal(vscode.Uri.parse(selected.detail));
+  }
+}
+
+async function handleRemovePackageInline(
+  projectPath: string,
+  packageName: string,
+): Promise<void> {
+  const confirmed = await vscode.window.showWarningMessage(
+    `Remove ${packageName} from project?`,
+    { modal: true },
+    "Remove",
+  );
+
+  if (confirmed !== "Remove") {
+    return;
+  }
+
+  try {
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: `Removing ${packageName}...`,
+        cancellable: false,
+      },
+      async () => {
+        const result = await removePackage({
+          projectPath,
+          packageName,
+        });
+
+        if (result.success) {
+          vscode.window.showInformationMessage(
+            `Successfully removed ${packageName}`,
+          );
+          clearCacheForProject(projectPath);
+          if (codeLensProvider) {
+            codeLensProvider.refresh();
+          }
+        } else {
+          vscode.window.showErrorMessage(
+            `Failed to remove ${packageName}: ${result.stderr || "Unknown error"}`,
+          );
+        }
+      },
+    );
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    vscode.window.showErrorMessage(`Error removing package: ${errorMessage}`);
+  }
+}
+
+async function handleChooseProject(currentProjectPath: string): Promise<void> {
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  if (!workspaceFolders || workspaceFolders.length === 0) {
+    vscode.window.showWarningMessage("No workspace folder open");
+    return;
+  }
+
+  const allProjects: string[] = [];
+  for (const folder of workspaceFolders) {
+    const projects = await findCsprojFiles(folder.uri.fsPath);
+    allProjects.push(...projects);
+  }
+
+  if (allProjects.length === 0) {
+    vscode.window.showWarningMessage("No .csproj files found in workspace");
+    return;
+  }
+
+  if (allProjects.length === 1) {
+    vscode.window.showInformationMessage("Only one project in workspace");
+    return;
+  }
+
+  const items: vscode.QuickPickItem[] = allProjects.map((projectPath) => {
+    const parts = projectPath.split(/[\\/]/);
+    const name = parts[parts.length - 1] || "Unknown";
+    return {
+      label: name.replace(".csproj", ""),
+      description: projectPath === currentProjectPath ? "(current)" : "",
+      detail: projectPath,
+    };
+  });
+
+  const selected = await vscode.window.showQuickPick(items, {
+    title: "Choose Project",
+    placeHolder: "Select a .csproj file to open",
+  });
+
+  if (selected && selected.detail && selected.detail !== currentProjectPath) {
+    const doc = await vscode.workspace.openTextDocument(selected.detail);
+    await vscode.window.showTextDocument(doc);
   }
 }
 
@@ -924,6 +1066,20 @@ export function registerCsprojFeatures(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand(
       "yet-another-nuget-package-manager.upgradeAllPackages",
       handleUpgradeAllPackages,
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "yet-another-nuget-package-manager.removePackageInline",
+      handleRemovePackageInline,
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "yet-another-nuget-package-manager.chooseProject",
+      handleChooseProject,
     ),
   );
 

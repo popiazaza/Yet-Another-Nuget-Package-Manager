@@ -106,7 +106,7 @@ export async function findCsprojFiles(
           csprojFiles.push(filePath);
         }
       }
-    } catch (error) {
+    } catch {
       // Skip directories we can't access
     }
   }
