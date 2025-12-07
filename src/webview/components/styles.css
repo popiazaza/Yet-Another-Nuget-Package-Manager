@@ -1,3 +1,6 @@
+/* Codicon font import */
+@import '@vscode/codicons/dist/codicon.css';
+
 /* Main App Styling */
 * {
   margin: 0;
@@ -1453,8 +1456,46 @@ body {
   cursor: pointer;
 }
 
-.prerelease-toggle input {
+.prerelease-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
+}
+
+.prerelease-toggle input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--vscode-inputBox-border, #3c3c3c);
+  border-radius: 3px;
+  background-color: var(--vscode-inputBox-background);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.prerelease-toggle input[type="checkbox"]:hover {
+  border-color: var(--vscode-button-background);
+}
+
+.prerelease-toggle input[type="checkbox"]:checked {
+  background-color: var(--vscode-button-background);
+  border-color: var(--vscode-button-background);
+}
+
+.prerelease-toggle input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--vscode-button-foreground);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 .search-results {
@@ -1572,6 +1613,10 @@ body {
   font-weight: 500;
   background-color: rgba(14, 99, 156, 0.15);
   color: #4fc3f7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
 }
 
 .upgrade-badge.major {
@@ -1600,23 +1645,27 @@ body {
 }
 
 .vulnerability-badge {
-  /* Match upgrade-badge styling so both have the same look and feel */
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 3px;
   font-weight: 500;
   color: var(--update-major);
   background-color: rgba(255, 107, 107, 0.15);
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .search-result-badges {
-  /* Anchor badges to the right and align to the stats row */
-  margin-left: 12px;
+  /* Anchor badges to the right - constrain width */
+  margin-left: auto;
   display: flex;
-  flex-direction: row;
-  gap: 8px;
-  align-items: center;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+  flex-shrink: 0;
+  max-width: 160px;
 }
 
 /* Smaller modifier to display icon-only badge when needed */
@@ -1881,4 +1930,122 @@ body {
 .modal-body::-webkit-scrollbar-thumb:hover,
 .search-results::-webkit-scrollbar-thumb:hover {
   background: var(--vscode-list-activeSelectionBackground);
+}
+
+/* Button Spinner */
+.button-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+/* Meta item labels (for PackageDetailsPanel) */
+.meta-label {
+  font-weight: 600;
+}
+
+/* Severity badges for vulnerabilities */
+.severity-badge-inline {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.severity-badge-inline.severity-critical {
+  background-color: #ff5252;
+}
+
+.severity-badge-inline.severity-high {
+  background-color: #ff9800;
+}
+
+.severity-badge-inline.severity-medium {
+  background-color: #ffd93d;
+}
+
+.severity-badge-inline.severity-low {
+  background-color: #a0a0a0;
+}
+
+/* Codicon utility classes */
+.codicon {
+  font-family: 'codicon';
+  font-size: inherit;
+  line-height: 1;
+  display: inline-block;
+}
+
+.codicon-package::before {
+  content: '\\eb29';
+}
+
+.codicon-verified-filled::before {
+  content: '\\eb85';
+}
+
+.codicon-search::before {
+  content: '\\ea6d';
+}
+
+.codicon-warning::before {
+  content: '\\ea6c';
+}
+
+.codicon-link-external::before {
+  content: '\\eb09';
+}
+
+/* Default package icon using codicon */
+.default-icon-codicon {
+  font-size: 32px;
+  color: var(--vscode-editorLineNumber-foreground);
+  font-family: 'codicon';
+}
+
+.default-icon-codicon::before {
+  content: '\\eb29';
+}
+
+/* Verified badge with codicon */
+.verified-badge-codicon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background-color: #0e639c;
+  color: white;
+  border-radius: 50%;
+  font-size: 10px;
+  flex-shrink: 0;
+  font-family: 'codicon';
+}
+
+.verified-badge-codicon::before {
+  content: '\\eab2';
+}
+
+/* Placeholder icon using codicon */
+.placeholder-icon-codicon {
+  font-size: 48px;
+  opacity: 0.5;
+  color: var(--vscode-editorLineNumber-foreground);
+  font-family: 'codicon';
+}
+
+.placeholder-icon-codicon.package::before {
+  content: '\\eb29';
+}
+
+.placeholder-icon-codicon.search::before {
+  content: '\\ea6d';
 }

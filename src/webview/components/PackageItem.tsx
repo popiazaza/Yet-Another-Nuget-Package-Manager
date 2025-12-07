@@ -88,7 +88,7 @@ const PackageItem: React.FC<PackageItemProps> = ({
             }}
           />
         ) : (
-          <div className="default-icon">📦</div>
+          <div className="default-icon-codicon"></div>
         )}
       </div>
       <div className="search-result-info">
@@ -96,9 +96,7 @@ const PackageItem: React.FC<PackageItemProps> = ({
           <span className="search-result-name">
             {pkg.name}
             {pkg.metadata?.verified && (
-              <span className="verified-badge" title="Verified owner">
-                ✓
-              </span>
+              <span className="verified-badge-codicon" title="Verified owner"></span>
             )}
           </span>
           <span className="search-result-version">{pkg.currentVersion}</span>

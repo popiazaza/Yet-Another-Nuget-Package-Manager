@@ -93,6 +93,7 @@
   },
   "dependencies": {
     "@vitejs/plugin-react-swc": "^4.2.2",
+    "@vscode/codicons": "^0.0.43",
     "esbuild": "^0.25.12",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",

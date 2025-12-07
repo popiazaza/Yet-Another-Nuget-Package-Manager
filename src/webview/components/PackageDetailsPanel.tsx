@@ -81,7 +81,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
   if (!installedPackage && !searchPackage) {
     return (
       <div className="details-panel-placeholder">
-        <div className="placeholder-icon">{isBrowseOnly ? "🔍" : "📦"}</div>
+        <div className={`placeholder-icon-codicon ${isBrowseOnly ? 'search' : 'package'}`}></div>
         <p>Select a package to view details</p>
       </div>
     );
@@ -106,9 +106,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
             <h2>
               {packageName}
               {isVerified && (
-                <span className="verified-badge" title="Verified owner">
-                  ✓
-                </span>
+                <span className="verified-badge-codicon" title="Verified owner"></span>
               )}
             </h2>
             {authors.length > 0 && (
@@ -128,19 +126,19 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
         <div className="package-meta-inline">
           {totalDownloads !== undefined && totalDownloads > 0 && (
             <span className="meta-item">
-              📥 {formatDownloadsFull(totalDownloads)}
+              <span className="meta-label">Downloads:</span> {formatDownloadsFull(totalDownloads)}
             </span>
           )}
           {isInstalled && installedPackage?.metadata?.publishedDate && (
             <span className="meta-item">
-              📅{" "}
+              <span className="meta-label">Published:</span>{" "}
               {new Date(
                 installedPackage.metadata.publishedDate,
               ).toLocaleDateString()}
             </span>
           )}
           {licenseExpression ? (
-            <span className="meta-item">📄 {licenseExpression}</span>
+            <span className="meta-item"><span className="meta-label">License:</span> {licenseExpression}</span>
           ) : (
             licenseUrl && (
               <a
@@ -149,7 +147,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
                 rel="noopener noreferrer"
                 className="meta-item meta-link"
               >
-                📄 View License
+                View License
               </a>
             )
           )}
@@ -158,8 +156,9 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
         {/* Project URL */}
         {projectUrl && (
           <div className="project-url-inline">
+            <span className="meta-label">Project:</span>{" "}
             <a href={projectUrl} target="_blank" rel="noopener noreferrer">
-              🔗 {projectUrl}
+              {projectUrl}
             </a>
           </div>
         )}
@@ -241,7 +240,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
                 className="update-to-latest-button"
                 onClick={() => onUpdate(packageName, latestStableVersion)}
               >
-                ⬆️ Update to Latest ({latestStableVersion})
+                Update to Latest ({latestStableVersion})
               </button>
             </div>
           )}
@@ -252,19 +251,21 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
           installedPackage?.vulnerabilities &&
           installedPackage.vulnerabilities.length > 0 && (
             <div className="details-panel-section vulnerability-section">
-              <h3>🔒 Security Vulnerabilities</h3>
+              <h3>Security Vulnerabilities</h3>
               <div className="vulnerability-list">
                 {installedPackage.vulnerabilities.map((vuln, idx) => (
                   <div key={idx} className="vulnerability-item">
-                    <span className="vuln-severity">
-                      {vuln.severity === 3
-                        ? "🔴"
-                        : vuln.severity === 2
-                          ? "🟠"
-                          : vuln.severity === 1
-                            ? "🟡"
-                            : "⚪"}
-                    </span>
+                    <span
+                      className={`severity-badge-inline ${
+                        vuln.severity === 3
+                          ? 'severity-critical'
+                          : vuln.severity === 2
+                            ? 'severity-high'
+                            : vuln.severity === 1
+                              ? 'severity-medium'
+                              : 'severity-low'
+                      }`}
+                    ></span>
                     <span className="vuln-versions">
                       Affects: {vuln.versions}
                     </span>
@@ -292,7 +293,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
             disabled={!!operationInProgress}
           >
             {operationInProgress === packageName
-              ? "⟳ Removing..."
+              ? <><span className="button-spinner"></span>Removing...</>
               : "Remove Package"}
           </button>
         )}
@@ -306,7 +307,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
               disabled={!!operationInProgress}
             >
               {operationInProgress === packageName
-                ? "⟳ Updating..."
+                ? <><span className="button-spinner"></span>Updating...</>
                 : `Change to ${selectedVersion}`}
             </button>
           )}
@@ -314,7 +315,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
           onAdd &&
           (isAlreadyInstalled ? (
             <div className="already-installed-notice">
-              <span className="installed-badge">✓ Installed</span>
+              <span className="installed-badge">Installed</span>
               <span className="installed-version">
                 Version {installedVersion}
               </span>
@@ -326,7 +327,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
               disabled={!!operationInProgress}
             >
               {operationInProgress === packageName
-                ? "⟳ Adding..."
+                ? <><span className="button-spinner"></span>Adding...</>
                 : `Add ${packageName}`}
             </button>
           ))}

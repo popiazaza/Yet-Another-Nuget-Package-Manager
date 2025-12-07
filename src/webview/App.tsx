@@ -468,7 +468,7 @@ const App: React.FC = () => {
                   />
                 ) : (
                   <div className="details-panel-placeholder">
-                    <div className="placeholder-icon">📦</div>
+                    <div className="placeholder-icon-codicon package"></div>
                     <p>Select a package to view details</p>
                   </div>
                 )}
@@ -543,7 +543,7 @@ const App: React.FC = () => {
                           }}
                         />
                       ) : (
-                        <div className="default-icon">📦</div>
+                        <div className="default-icon-codicon"></div>
                       )}
                     </div>
                     <div className="search-result-info">
@@ -552,11 +552,9 @@ const App: React.FC = () => {
                           {pkg.id}
                           {pkg.verified && (
                             <span
-                              className="verified-badge"
+                              className="verified-badge-codicon"
                               title="Verified owner"
-                            >
-                              ✓
-                            </span>
+                            ></span>
                           )}
                           {isPackageInstalled && (
                             <span
@@ -616,7 +614,7 @@ const App: React.FC = () => {
               />
             ) : (
               <div className="details-panel-placeholder">
-                <div className="placeholder-icon">🔍</div>
+                <div className="placeholder-icon-codicon search"></div>
                 <p>Select a package to view details</p>
               </div>
             )}
