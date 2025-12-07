@@ -121,8 +121,8 @@ const PackageItem: React.FC<PackageItemProps> = ({
               {formatDownloads(pkg.metadata.totalDownloads)} downloads
             </span>
           ) : null}
-          
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+
+          <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
             {hasUpdate ? (
               <span className="upgrade-badge">
                 {updateTypeText} update: {pkg.latestVersion}
@@ -133,7 +133,7 @@ const PackageItem: React.FC<PackageItemProps> = ({
 
             {hasVulnerabilities && (
               <span className="vulnerability-badge">
-                 {getSeverityText(maxSeverity).replace(/[()]/g, '')} Severity
+                {getSeverityText(maxSeverity).replace(/[()]/g, "")} Severity
               </span>
             )}
           </div>

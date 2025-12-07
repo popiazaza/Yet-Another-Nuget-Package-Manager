@@ -2117,55 +2117,55 @@ body {
 }
 
 .links-badge {
-    background-color: transparent;
-    padding: 4px 0;
-    margin-left: 4px;
+  background-color: transparent;
+  padding: 4px 0;
+  margin-left: 4px;
 }
 
 .links-badge a {
-    color: var(--vscode-textLink-foreground);
-    text-decoration: none;
+  color: var(--vscode-textLink-foreground);
+  text-decoration: none;
 }
 
 .links-badge a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 .links-badge .separator {
-    margin: 0 6px;
-    opacity: 0.4;
+  margin: 0 6px;
+  opacity: 0.4;
 }
 
 /* Version Control Row */
 .version-control-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
 }
 
 .version-selector-wrapper {
-    flex: 1;
+  flex: 1;
 }
 
 .remove-link-button {
-    background: none;
-    border: none;
-    color: var(--vscode-editorLineNumber-foreground);
-    cursor: pointer;
-    font-size: 12px;
-    padding: 4px 8px;
-    opacity: 0.8;
-    white-space: nowrap;
+  background: none;
+  border: none;
+  color: var(--vscode-editorLineNumber-foreground);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 8px;
+  opacity: 0.8;
+  white-space: nowrap;
 }
 
 .remove-link-button:hover {
-    color: #f48771;
-    text-decoration: underline;
-    opacity: 1;
+  color: #f48771;
+  text-decoration: underline;
+  opacity: 1;
 }
 
 /* Cleanup */
 .details-panel-actions-inline:empty {
-    display: none;
+  display: none;
 }

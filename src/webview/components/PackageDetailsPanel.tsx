@@ -141,7 +141,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
 
           {/* Actions - Fast Access */}
           <div className="details-panel-actions-inline">
-{/* Remove button moved to version section */}
+            {/* Remove button moved to version section */}
             {isInstalled &&
               onUpdate &&
               selectedVersion &&
@@ -165,9 +165,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
               (isAlreadyInstalled ? (
                 <div className="already-installed-notice">
                   <span className="installed-badge">Installed</span>
-                  <span className="installed-version">
-                    v{installedVersion}
-                  </span>
+                  <span className="installed-version">v{installedVersion}</span>
                 </div>
               ) : (
                 <button
@@ -195,15 +193,23 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
                 <span>{formatDownloadsFull(totalDownloads)}</span>
               </div>
             )}
-            
+
             {licenseExpression ? (
-               <div className="meta-badge license-badge" title={licenseExpression}>
-                 <span className="meta-icon">⚖</span>
-                 <span>{licenseExpression}</span>
-               </div>
+              <div
+                className="meta-badge license-badge"
+                title={licenseExpression}
+              >
+                <span className="meta-icon">⚖</span>
+                <span>{licenseExpression}</span>
+              </div>
             ) : (
               licenseUrl && (
-                <a href={licenseUrl} target="_blank" rel="noopener noreferrer" className="meta-badge license-badge link">
+                <a
+                  href={licenseUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="meta-badge license-badge link"
+                >
                   <span className="meta-icon">⚖</span>
                   <span>View License</span>
                 </a>
@@ -211,73 +217,112 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
             )}
 
             <div className="meta-badge links-badge">
-                <a href={`https://www.nuget.org/packages/${packageName}`} target="_blank" rel="noopener noreferrer">NuGet.org</a>
-                <span className="separator">•</span>
-                <a href={`https://nugettrends.com/packages?ids=${packageName}`} target="_blank" rel="noopener noreferrer">Trends</a>
-                {projectUrl && (
-                    <>
-                    <span className="separator">•</span>
-                    <a href={projectUrl} target="_blank" rel="noopener noreferrer">Project</a>
-                    </>
-                )}
+              <a
+                href={`https://www.nuget.org/packages/${packageName}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                NuGet.org
+              </a>
+              <span className="separator">•</span>
+              <a
+                href={`https://nugettrends.com/packages?ids=${packageName}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Trends
+              </a>
+              {projectUrl && (
+                <>
+                  <span className="separator">•</span>
+                  <a
+                    href={projectUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Project
+                  </a>
+                </>
+              )}
             </div>
           </div>
 
           {/* Tags */}
-{/* Tags handled in header */}
+          {/* Tags handled in header */}
         </div>
         <div className="details-panel-body">
-{/* Deprecation Warning */}
-          {(installedPackage?.metadata?.deprecation || searchPackage?.deprecation) && (
+          {/* Deprecation Warning */}
+          {(installedPackage?.metadata?.deprecation ||
+            searchPackage?.deprecation) && (
             <div className="deprecation-warning">
-                <span className="warning-icon">⚠️</span>
-                <div className="warning-content">
-                    <strong>This package has been deprecated.</strong>
-                    <p>{installedPackage?.metadata?.deprecation?.message || searchPackage?.deprecation?.message || "No deprecation message provided."}</p>
-                    {(installedPackage?.metadata?.deprecation?.alternatePackage || searchPackage?.deprecation?.alternatePackage) && (
-                        <div className="alternate-package">
-                            <span>Alternate: </span>
-                            <code>
-                                {installedPackage?.metadata?.deprecation?.alternatePackage?.id || searchPackage?.deprecation?.alternatePackage?.id}
-                            </code>
-                        </div>
-                    )}
-                </div>
+              <span className="warning-icon">⚠️</span>
+              <div className="warning-content">
+                <strong>This package has been deprecated.</strong>
+                <p>
+                  {installedPackage?.metadata?.deprecation?.message ||
+                    searchPackage?.deprecation?.message ||
+                    "No deprecation message provided."}
+                </p>
+                {(installedPackage?.metadata?.deprecation?.alternatePackage ||
+                  searchPackage?.deprecation?.alternatePackage) && (
+                  <div className="alternate-package">
+                    <span>Alternate: </span>
+                    <code>
+                      {installedPackage?.metadata?.deprecation?.alternatePackage
+                        ?.id ||
+                        searchPackage?.deprecation?.alternatePackage?.id}
+                    </code>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
           {/* Release Notes */}
-          {(installedPackage?.metadata?.releaseNotes || searchPackage?.releaseNotes) && (
-             <div className="details-panel-section">
-                <h3>Release Notes</h3>
-                <div className="release-notes-content">
-                    {installedPackage?.metadata?.releaseNotes || searchPackage?.releaseNotes}
-                </div>
-             </div>
+          {(installedPackage?.metadata?.releaseNotes ||
+            searchPackage?.releaseNotes) && (
+            <div className="details-panel-section">
+              <h3>Release Notes</h3>
+              <div className="release-notes-content">
+                {installedPackage?.metadata?.releaseNotes ||
+                  searchPackage?.releaseNotes}
+              </div>
+            </div>
           )}
 
           {/* Additional Info Grid */}
-           <div className="details-panel-section">
-                <h3>Additional Information</h3>
-                <div className="info-grid">
-                    {(installedPackage?.metadata?.publishedDate || searchPackage?.publishedDate) && (
-                        <div className="info-item">
-                            <span className="info-label">Published</span>
-                            <span className="info-value">
-                                {new Date(installedPackage?.metadata?.publishedDate || searchPackage?.publishedDate || "").toLocaleDateString()}
-                            </span>
-                        </div>
-                    )}
-                    {(installedPackage?.metadata?.owners || searchPackage?.owners) && (
-                        <div className="info-item">
-                            <span className="info-label">Owners</span>
-                            <span className="info-value">
-                                {(installedPackage?.metadata?.owners || (Array.isArray(searchPackage?.owners) ? searchPackage?.owners : [searchPackage?.owners])).join(", ")}
-                            </span>
-                        </div>
-                    )}
+          <div className="details-panel-section">
+            <h3>Additional Information</h3>
+            <div className="info-grid">
+              {(installedPackage?.metadata?.publishedDate ||
+                searchPackage?.publishedDate) && (
+                <div className="info-item">
+                  <span className="info-label">Published</span>
+                  <span className="info-value">
+                    {new Date(
+                      installedPackage?.metadata?.publishedDate ||
+                        searchPackage?.publishedDate ||
+                        "",
+                    ).toLocaleDateString()}
+                  </span>
                 </div>
-           </div>
+              )}
+              {(installedPackage?.metadata?.owners ||
+                searchPackage?.owners) && (
+                <div className="info-item">
+                  <span className="info-label">Owners</span>
+                  <span className="info-value">
+                    {(
+                      installedPackage?.metadata?.owners ||
+                      (Array.isArray(searchPackage?.owners)
+                        ? searchPackage?.owners
+                        : [searchPackage?.owners])
+                    ).join(", ")}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Version Section - Unified for both Installed and Browse */}
           <div className="details-panel-section">
@@ -293,59 +338,61 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
             <div className="version-control-row">
               <div className="version-selector-wrapper">
                 <select
-                    id="version-select"
-                    value={
+                  id="version-select"
+                  value={
                     selectedVersion ||
                     currentVersion ||
                     searchPackage?.version ||
                     ""
-                    }
-                    onChange={(e) => onVersionChange?.(e.target.value)}
-                    className="version-select"
+                  }
+                  onChange={(e) => onVersionChange?.(e.target.value)}
+                  className="version-select"
                 >
-                    {versions && versions.length > 0 ? (
+                  {versions && versions.length > 0 ? (
                     // Reverse to show newest first
                     [...versions].reverse().map((v) => (
-                        <option key={v.version} value={v.version}>
+                      <option key={v.version} value={v.version}>
                         {v.version}
                         {isPrerelease(v.version) ? " (Pre-Release)" : ""} (
                         {formatDownloadsShort(v.downloads)})
-                        </option>
+                      </option>
                     ))
-                    ) : (
+                  ) : (
                     <>
-                        {isInstalled &&
+                      {isInstalled &&
                         latestStableVersion &&
                         latestStableVersion !== currentVersion && (
-                            <option value={latestStableVersion}>
+                          <option value={latestStableVersion}>
                             {latestStableVersion} (Latest Stable)
-                            </option>
+                          </option>
                         )}
-                        {isInstalled && latestPrereleaseVersion && (
+                      {isInstalled && latestPrereleaseVersion && (
                         <option value={latestPrereleaseVersion}>
-                            {latestPrereleaseVersion} (Pre-Release)
-                            </option>
-                        )}
-                        <option
+                          {latestPrereleaseVersion} (Pre-Release)
+                        </option>
+                      )}
+                      <option
                         value={currentVersion || searchPackage?.version || ""}
-                        >
+                      >
                         {currentVersion || searchPackage?.version || ""}{" "}
                         {isInstalled ? "(Installed)" : "(Latest)"}
-                        </option>
+                      </option>
                     </>
-                    )}
+                  )}
                 </select>
               </div>
 
-               {isInstalled && onRemove && (
-                 <button 
-                    className="remove-link-button"
-                    onClick={() => onRemove(packageName)}
-                    disabled={!!operationInProgress}
-                    title="Uninstall this package"
-                 >
-                    {operationInProgress === packageName ? "Removing..." : "Remove"}
-                 </button>
+              {isInstalled && onRemove && (
+                <button
+                  className="remove-link-button"
+                  onClick={() => onRemove(packageName)}
+                  disabled={!!operationInProgress}
+                  title="Uninstall this package"
+                >
+                  {operationInProgress === packageName
+                    ? "Removing..."
+                    : "Remove"}
+                </button>
               )}
             </div>
 

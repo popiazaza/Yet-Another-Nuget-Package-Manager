@@ -143,30 +143,38 @@ const App: React.FC = () => {
 
         case "packageMetadata":
           if (message.packageName === selectedSearchPackage?.id) {
-              setSelectedSearchPackage(prev => prev ? ({...prev, ...message.metadata}) : null);
+            setSelectedSearchPackage((prev) =>
+              prev ? { ...prev, ...message.metadata } : null,
+            );
           }
-          if (message.packageName === selectedInstalledPackageRef.current?.name) {
-             // For installed packages, we might want to store this metadata locally or update the package object
-             // But for now, let's just update the search data if it matches? 
-             // Actually currently installedPackage doesn't have a place to store extra metadata easily in the list
-             // except via installedPackageSearchData which is NuGetSearchResult
-             setInstalledPackageSearchData(prev => prev ? ({...prev, ...message.metadata}) : {
-                 id: message.packageName,
-                 version: message.metadata.version,
-                 description: message.metadata.description,
-                 authors: message.metadata.authors,
-                 totalDownloads: message.metadata.totalDownloads,
-                 verified: message.metadata.verified,
-                 iconUrl: message.metadata.iconUrl,
-                 projectUrl: message.metadata.projectUrl,
-                 licenseUrl: message.metadata.licenseUrl,
-                 tags: message.metadata.tags,
-                 // Extended fields
-                 releaseNotes: message.metadata.releaseNotes,
-                 publishedDate: message.metadata.publishedDate,
-                 owners: message.metadata.owners,
-                 deprecation: message.metadata.deprecation
-             });
+          if (
+            message.packageName === selectedInstalledPackageRef.current?.name
+          ) {
+            // For installed packages, we might want to store this metadata locally or update the package object
+            // But for now, let's just update the search data if it matches?
+            // Actually currently installedPackage doesn't have a place to store extra metadata easily in the list
+            // except via installedPackageSearchData which is NuGetSearchResult
+            setInstalledPackageSearchData((prev) =>
+              prev
+                ? { ...prev, ...message.metadata }
+                : {
+                    id: message.packageName,
+                    version: message.metadata.version,
+                    description: message.metadata.description,
+                    authors: message.metadata.authors,
+                    totalDownloads: message.metadata.totalDownloads,
+                    verified: message.metadata.verified,
+                    iconUrl: message.metadata.iconUrl,
+                    projectUrl: message.metadata.projectUrl,
+                    licenseUrl: message.metadata.licenseUrl,
+                    tags: message.metadata.tags,
+                    // Extended fields
+                    releaseNotes: message.metadata.releaseNotes,
+                    publishedDate: message.metadata.publishedDate,
+                    owners: message.metadata.owners,
+                    deprecation: message.metadata.deprecation,
+                  },
+            );
           }
           break;
 

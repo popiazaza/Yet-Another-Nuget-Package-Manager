@@ -20,7 +20,9 @@ export function formatVulnerabilityRange(range: string): string {
   const trimmed = range.trim();
 
   // Basic check for interval notation
-  const intervalMatch = trimmed.match(/^([\[\(])([^,]*),?\s*([^\]\)]*)([\]\)])$/);
+  const intervalMatch = trimmed.match(
+    /^([\[\(])([^,]*),?\s*([^\]\)]*)([\]\)])$/,
+  );
 
   if (!intervalMatch) {
     // strict version or invalid format, return as is
