@@ -121,25 +121,25 @@ const PackageItem: React.FC<PackageItemProps> = ({
               {formatDownloads(pkg.metadata.totalDownloads)} downloads
             </span>
           ) : null}
+          
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+            {hasUpdate ? (
+              <span className="upgrade-badge">
+                {updateTypeText} {pkg.latestVersion}
+              </span>
+            ) : (
+              <span className="status-uptodate">Latest</span>
+            )}
+
+            {hasVulnerabilities && (
+              <span className="vulnerability-badge">
+                 {getSeverityText(maxSeverity).replace(/[()]/g, '')} Severity
+              </span>
+            )}
+          </div>
         </div>
       </div>
-      <div className="search-result-badges">
-        {hasUpdate ? (
-          <span className="upgrade-badge">
-            {updateTypeText} update: {pkg.latestVersion}
-          </span>
-        ) : (
-          <span className="status-uptodate">Latest</span>
-        )}
-
-        {hasVulnerabilities && (
-          <span className="vulnerability-badge">
-            {pkg.vulnerabilities!.length} vulnerabilit
-            {pkg.vulnerabilities!.length !== 1 ? "ies" : "y"}{" "}
-            {getSeverityText(maxSeverity)}
-          </span>
-        )}
-      </div>
+      {/* Badges container removed as it's now integrated above */}
     </div>
   );
 };

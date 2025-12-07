@@ -121,6 +121,15 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
                   by {authors.join(", ")}
                 </div>
               )}
+              {tags && tags.length > 0 && (
+                <div className="tag-list-header">
+                  {tags.map((tag) => (
+                    <span key={tag} className="tag-badge">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -131,21 +140,7 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
 
           {/* Actions - Fast Access */}
           <div className="details-panel-actions-inline">
-            {isInstalled && onRemove && (
-              <button
-                className="remove-button action-button"
-                onClick={() => onRemove(packageName)}
-                disabled={!!operationInProgress}
-              >
-                {operationInProgress === packageName ? (
-                  <>
-                    <span className="button-spinner"></span>Removing...
-                  </>
-                ) : (
-                  "Remove"
-                )}
-              </button>
-            )}
+{/* Remove button moved to version section */}
             {isInstalled &&
               onUpdate &&
               selectedVersion &&
@@ -191,81 +186,44 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
           </div>
 
           {/* Package Metadata */}
-          <div className="package-meta-inline">
+          {/* Package Metadata - Grid Layout */}
+          <div className="package-meta-grid">
             {totalDownloads !== undefined && totalDownloads > 0 && (
-              <span className="meta-item">
-                <span className="meta-label">Downloads:</span>{" "}
-                {formatDownloadsFull(totalDownloads)}
-              </span>
+              <div className="meta-badge downloads-badge">
+                <span className="meta-label">Downloads:</span>
+                <span>{formatDownloadsFull(totalDownloads)}</span>
+              </div>
             )}
-            {isInstalled && installedPackage?.metadata?.publishedDate && (
-              <span className="meta-item">
-                <span className="meta-label">Published:</span>{" "}
-                {new Date(
-                  installedPackage.metadata.publishedDate,
-                ).toLocaleDateString()}
-              </span>
-            )}
+            
             {licenseExpression ? (
-              <span className="meta-item">
-                <span className="meta-label">License:</span> {licenseExpression}
-              </span>
+               <div className="meta-badge license-badge" title={licenseExpression}>
+                 <span className="meta-icon">⚖</span>
+                 <span>{licenseExpression}</span>
+               </div>
             ) : (
               licenseUrl && (
-                <a
-                  href={licenseUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="meta-item meta-link"
-                >
-                  View License
+                <a href={licenseUrl} target="_blank" rel="noopener noreferrer" className="meta-badge license-badge link">
+                  <span className="meta-icon">⚖</span>
+                  <span>View License</span>
                 </a>
               )
             )}
-            
-            {/* Inline External Links */}
-            <div className="meta-item">
-              <span className="meta-label">Links:</span>
-              <a
-                href={`https://www.nuget.org/packages/${packageName}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="meta-link"
-              >
-                NuGet.org
-              </a>
-              <span className="meta-separator">•</span>
-              <a
-                href={`https://nugettrends.com/packages?ids=${packageName}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="meta-link"
-              >
-                Trends
-              </a>
+
+            <div className="meta-badge links-badge">
+                <a href={`https://www.nuget.org/packages/${packageName}`} target="_blank" rel="noopener noreferrer">NuGet.org</a>
+                <span className="separator">•</span>
+                <a href={`https://nugettrends.com/packages?ids=${packageName}`} target="_blank" rel="noopener noreferrer">Trends</a>
+                {projectUrl && (
+                    <>
+                    <span className="separator">•</span>
+                    <a href={projectUrl} target="_blank" rel="noopener noreferrer">Project</a>
+                    </>
+                )}
             </div>
           </div>
 
-          {/* Project URL */}
-          {projectUrl && (
-            <div className="project-url-inline">
-              <span className="meta-label">Project:</span>{" "}
-              <a href={projectUrl} target="_blank" rel="noopener noreferrer">
-                {projectUrl}
-              </a>
-            </div>
-          )}
-
           {/* Tags */}
-          {tags && tags.length > 0 && (
-            <div className="tag-list-inline">
-              {tags.map((tag) => (
-                <span key={tag} className="tag">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
+{/* Tags handled in header */}
         </div>
 
         <div className="details-panel-body">
@@ -280,50 +238,63 @@ const PackageDetailsPanel: React.FC<PackageDetailsPanelProps> = ({
               </div>
             )}
 
-            <div className="version-selector-row">
-              <select
-                id="version-select"
-                value={
-                  selectedVersion ||
-                  currentVersion ||
-                  searchPackage?.version ||
-                  ""
-                }
-                onChange={(e) => onVersionChange?.(e.target.value)}
-                className="version-select"
-              >
-                {versions && versions.length > 0 ? (
-                  // Reverse to show newest first
-                  [...versions].reverse().map((v) => (
-                    <option key={v.version} value={v.version}>
-                      {v.version}
-                      {isPrerelease(v.version) ? " (Pre-Release)" : ""} (
-                      {formatDownloadsShort(v.downloads)})
-                    </option>
-                  ))
-                ) : (
-                  <>
-                    {isInstalled &&
-                      latestStableVersion &&
-                      latestStableVersion !== currentVersion && (
-                        <option value={latestStableVersion}>
-                          {latestStableVersion} (Latest Stable)
+            <div className="version-control-row">
+              <div className="version-selector-wrapper">
+                <select
+                    id="version-select"
+                    value={
+                    selectedVersion ||
+                    currentVersion ||
+                    searchPackage?.version ||
+                    ""
+                    }
+                    onChange={(e) => onVersionChange?.(e.target.value)}
+                    className="version-select"
+                >
+                    {versions && versions.length > 0 ? (
+                    // Reverse to show newest first
+                    [...versions].reverse().map((v) => (
+                        <option key={v.version} value={v.version}>
+                        {v.version}
+                        {isPrerelease(v.version) ? " (Pre-Release)" : ""} (
+                        {formatDownloadsShort(v.downloads)})
                         </option>
-                      )}
-                    {isInstalled && latestPrereleaseVersion && (
-                      <option value={latestPrereleaseVersion}>
-                        {latestPrereleaseVersion} (Pre-Release)
-                      </option>
+                    ))
+                    ) : (
+                    <>
+                        {isInstalled &&
+                        latestStableVersion &&
+                        latestStableVersion !== currentVersion && (
+                            <option value={latestStableVersion}>
+                            {latestStableVersion} (Latest Stable)
+                            </option>
+                        )}
+                        {isInstalled && latestPrereleaseVersion && (
+                        <option value={latestPrereleaseVersion}>
+                            {latestPrereleaseVersion} (Pre-Release)
+                        </option>
+                        )}
+                        <option
+                        value={currentVersion || searchPackage?.version || ""}
+                        >
+                        {currentVersion || searchPackage?.version || ""}{" "}
+                        {isInstalled ? "(Installed)" : "(Latest)"}
+                        </option>
+                    </>
                     )}
-                    <option
-                      value={currentVersion || searchPackage?.version || ""}
-                    >
-                      {currentVersion || searchPackage?.version || ""}{" "}
-                      {isInstalled ? "(Installed)" : "(Latest)"}
-                    </option>
-                  </>
-                )}
-              </select>
+                </select>
+              </div>
+
+               {isInstalled && onRemove && (
+                 <button 
+                    className="remove-link-button"
+                    onClick={() => onRemove(packageName)}
+                    disabled={!!operationInProgress}
+                    title="Uninstall this package"
+                 >
+                    {operationInProgress === packageName ? "Removing..." : "Remove"}
+                 </button>
+              )}
             </div>
 
             {/* Quick update buttons for installed packages */}

@@ -2061,3 +2061,111 @@ body {
 .placeholder-icon-codicon.search::before {
   content: "🔍";
 }
+
+/* UI Improvements 2024 */
+
+/* Tag List Header */
+.tag-list-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.tag-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  background-color: var(--vscode-list-hoverBackground);
+  border-radius: 12px;
+  color: var(--vscode-editorLineNumber-foreground);
+}
+
+/* Package Meta Grid */
+.package-meta-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  background-color: var(--vscode-list-hoverBackground);
+  color: var(--vscode-editor-foreground);
+  border: 1px solid transparent;
+}
+
+.meta-badge.link {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.meta-badge.link:hover {
+  background-color: var(--vscode-button-secondaryHoverBackground);
+  border-color: var(--vscode-button-background);
+}
+
+.meta-badge .meta-icon {
+  font-size: 14px;
+  opacity: 0.8;
+  display: inline-block;
+}
+
+.links-badge {
+    background-color: transparent;
+    padding: 4px 0;
+    margin-left: 4px;
+}
+
+.links-badge a {
+    color: var(--vscode-textLink-foreground);
+    text-decoration: none;
+}
+
+.links-badge a:hover {
+    text-decoration: underline;
+}
+
+.links-badge .separator {
+    margin: 0 6px;
+    opacity: 0.4;
+}
+
+/* Version Control Row */
+.version-control-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.version-selector-wrapper {
+    flex: 1;
+}
+
+.remove-link-button {
+    background: none;
+    border: none;
+    color: var(--vscode-editorLineNumber-foreground);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 4px 8px;
+    opacity: 0.8;
+    white-space: nowrap;
+}
+
+.remove-link-button:hover {
+    color: #f48771;
+    text-decoration: underline;
+    opacity: 1;
+}
+
+/* Cleanup */
+.details-panel-actions-inline:empty {
+    display: none;
+}
