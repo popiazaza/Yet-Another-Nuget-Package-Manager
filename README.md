@@ -24,7 +24,6 @@ Yet Another NuGet Package Manager is a Visual Studio Code extension that provide
     - **Add Package**: Click "➕ Add Package" at the top of the file to search and install new dependencies.
     - **Vulnerabilities**: Click on vulnerability warnings (e.g., "⚠️ 2 Vulnerabilities") to view details and severity.
     - **Manage**: Use "⬆️ Update to X.X.X" or "✅ Latest" (CodeLens) to update to latest version, pick a specific version, or remove a package. To open the NuGet.org page use Ctrl+Click on the package ID or the "View on NuGet.org" command in the Command Palette.
-    - **Remove**: Click "🗑️ Remove" to uninstall a package.
 
 ## Commands
 
