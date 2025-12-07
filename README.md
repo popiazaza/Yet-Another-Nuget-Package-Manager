@@ -12,6 +12,7 @@ Yet Another NuGet Package Manager is a Visual Studio Code extension that provide
 - **Detailed Metadata**: View package details, license info, and vulnerability reports.
 - **Version Control**: Upgrade to specific versions, switch between stable/pre-release, or downgrade easily.
 - **Zero Configuration**: Works out of the box by automatically detecting `.csproj` files in your workspace.
+- **Open on NuGet.org**: Ctrl+Click a package ID (or use the "View on NuGet.org" command) to open the package page.
 
 ## Usage
 
@@ -21,9 +22,8 @@ Yet Another NuGet Package Manager is a Visual Studio Code extension that provide
     - Type `Version="` to see available versions for that package.
 3.  **CodeLens Actions**: Look for the CodeLens text above or next to your package references.
     - **Add Package**: Click "➕ Add Package" at the top of the file to search and install new dependencies.
-    - **Update**: Click "⬆️ Update to X.X.X" to instantly upgrade a package.
     - **Vulnerabilities**: Click on vulnerability warnings (e.g., "⚠️ 2 Vulnerabilities") to view details and severity.
-    - **Manage**: Use "📋 Select version" to choose specific versions or "🔗 NuGet" to view the package on NuGet.org.
+    - **Manage**: Use "⬆️ Update to X.X.X" or "✅ Latest" (CodeLens) to update to latest version, pick a specific version, or remove a package. To open the NuGet.org page use Ctrl+Click on the package ID or the "View on NuGet.org" command in the Command Palette.
     - **Remove**: Click "🗑️ Remove" to uninstall a package.
 
 ## Commands
@@ -40,20 +40,41 @@ Most features are accessible via CodeLens, but the following commands are also a
 To build and run the extension locally:
 
 1.  Install dependencies:
+    You can use `npm` or `bun` depending on your environment. Examples:
 
     ```bash
     npm install
+    # or, if you prefer bun
+    bun install
     ```
 
 2.  Build the extension:
 
     ```bash
     npm run build
+    # or with bun
+    bun run build
     ```
 
 3.  Run in VS Code:
     - Press `F5` to open a new Extension Development Host window.
     - Open a folder containing a `.NET` project to test the features.
+
+Optional development tips:
+
+- Run a watch build during development:
+
+```bash
+npm run watch
+# or
+bun run build -- --watch
+```
+
+- Run tests (integration with VS Code test runner):
+
+```bash
+npm test
+```
 
 ## License
 
