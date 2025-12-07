@@ -305,31 +305,31 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
         // Main Status CodeLens
         let title = "";
         let tooltip = "";
-        
+
         // If versions failed to load (no latest version and not checking), show error state
         if (!pkg.latestVersion && !pkg.isChecking) {
-             title = `⚠️ Version Check Failed`;
-             tooltip = `Failed to fetch versions for ${pkg.packageName}. Check package compatibility or internet connection.`;
-             // Add a non-functional CodeLens or one that just shows the error
-             codeLenses.push(
-                new vscode.CodeLens(range, {
-                    title: title,
-                    command: "", // No command
-                    tooltip: tooltip,
-                }),
-            );
-            continue;
+          title = `⚠️ Version Check Failed`;
+          tooltip = `Failed to fetch versions for ${pkg.packageName}. Check package compatibility or internet connection.`;
+          // Add a non-functional CodeLens or one that just shows the error
+          codeLenses.push(
+            new vscode.CodeLens(range, {
+              title: title,
+              command: "", // No command
+              tooltip: tooltip,
+            }),
+          );
+          continue;
         }
 
         if (hasStableUpdate) {
-            title = `⬆️ Update to ${pkg.latestVersion}`;
-            tooltip = `Update available: ${pkg.latestVersion}`;
+          title = `⬆️ Update to ${pkg.latestVersion}`;
+          tooltip = `Update available: ${pkg.latestVersion}`;
         } else if (hasPrereleaseUpdate) {
-            title = `⬆️ Update to ${pkg.latestPrereleaseVersion} (Pre-Release)`;
-            tooltip = `Pre-release update available: ${pkg.latestPrereleaseVersion}`;
+          title = `⬆️ Update to ${pkg.latestPrereleaseVersion} (Pre-Release)`;
+          tooltip = `Pre-release update available: ${pkg.latestPrereleaseVersion}`;
         } else {
-             title = isPrerelease ? `✅ Latest Pre-Release` : `✅ Latest Stable`;
-             tooltip = `${pkg.packageName} is up to date`;
+          title = isPrerelease ? `✅ Latest Pre-Release` : `✅ Latest Stable`;
+          tooltip = `${pkg.packageName} is up to date`;
         }
 
         codeLenses.push(
@@ -630,22 +630,28 @@ async function handleSelectPackageVersion(
     for (const v of displayVersions) {
       const isSelected = v === currentVersion;
       const isPre = isPrereleaseVersion(v);
-      
+
       let icon = isSelected ? "$(check) " : "";
       let description = "";
 
-      if (isSelected) {description = "(Current) ";}
-      if (isPre) {description += "(Pre-Release)";}
+      if (isSelected) {
+        description = "(Current) ";
+      }
+      if (isPre) {
+        description += "(Pre-Release)";
+      }
 
       const vulns = await getVulnerabilities(packageName, v);
       const isVulnerable = vulns.length > 0;
 
       let label = `${icon}${v}`;
       let detail = "";
-      
+
       if (isVulnerable) {
         // Warning icon and count moved to detail (under version)
-        const highestSeverity = getSeverityLabel(Math.max(...vulns.map((x) => x.severity))).toLowerCase();
+        const highestSeverity = getSeverityLabel(
+          Math.max(...vulns.map((x) => x.severity)),
+        ).toLowerCase();
         detail = `$(alert) ${vulns.length} Vulnerabilit${vulns.length > 1 ? "ies" : "y"} (${highestSeverity})`;
       }
 
@@ -662,7 +668,9 @@ async function handleSelectPackageVersion(
       placeHolder: "Select an action or version",
     });
 
-    if (!selected) {return;}
+    if (!selected) {
+      return;
+    }
 
     if (selected.label.includes("Remove Package")) {
       await handleRemovePackageInline(projectPath, packageName);
@@ -751,7 +759,8 @@ async function handleSearchAndAddPackage(projectPath: string): Promise<void> {
               label: pkg.id,
               description: pkg.version,
               detail: pkg.description
-                ? pkg.description.substring(0, 200) + (pkg.description.length > 200 ? "..." : "")
+                ? pkg.description.substring(0, 200) +
+                  (pkg.description.length > 200 ? "..." : "")
                 : "",
               alwaysShow: true,
             };

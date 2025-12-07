@@ -251,15 +251,19 @@ export async function getPackageMetadata(
       if (searchMatch) {
         metadata.totalDownloads = searchMatch.totalDownloads;
         metadata.verified = searchMatch.verified;
-        
+
         // Fallback for description if missing in catalog (common for older packages)
         if (!metadata.description && searchMatch.description) {
-            metadata.description = searchMatch.description;
+          metadata.description = searchMatch.description;
         }
 
         // Fallback for authors if missing
-        if ((!metadata.authors || metadata.authors.length === 0) && searchMatch.authors && searchMatch.authors.length > 0) {
-            metadata.authors = searchMatch.authors;
+        if (
+          (!metadata.authors || metadata.authors.length === 0) &&
+          searchMatch.authors &&
+          searchMatch.authors.length > 0
+        ) {
+          metadata.authors = searchMatch.authors;
         }
 
         if (!metadata.iconUrl) {
@@ -276,7 +280,7 @@ export async function getPackageMetadata(
         }
         // Also ensure published date is available if missing (though search usually doesn't have better date)
         if (!metadata.publishedDate && searchMatch.published) {
-             metadata.publishedDate = searchMatch.published;
+          metadata.publishedDate = searchMatch.published;
         }
       }
     } catch {
