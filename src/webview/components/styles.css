@@ -2000,7 +2000,7 @@ body {
 }
 
 .codicon-verified-filled::before {
-  content: "✅";
+  content: "✓";
 }
 
 .codicon-search::before {
