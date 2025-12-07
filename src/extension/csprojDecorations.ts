@@ -10,6 +10,7 @@ import {
   getSeverityEmoji,
   compareVersions,
   getUpdateType,
+  getPackageMetadata,
   VulnerabilityInfo,
 } from "./nugetApi";
 import { updatePackage, addPackage, removePackage } from "./dotnetCli";
@@ -124,17 +125,14 @@ function parsePackageReferences(
  * Compare versions to check if current is up to date
  */
 function isVersionUpToDate(current: string, latest: string): boolean {
-  // Handle null/empty cases
   if (!latest) {
     return true;
   }
 
-  // Simple string comparison first
   if (current === latest) {
     return true;
   }
 
-  // Parse versions for numeric comparison
   const currentParts = current
     .replace(/[^\d.]/g, "")
     .split(".")
@@ -179,11 +177,41 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
 
     const codeLenses: vscode.CodeLens[] = [];
     const documentUri = document.uri.toString();
+    const text = document.getText();
+    const lines = text.split("\n");
 
-    // Add a CodeLens at the top of the file to choose/switch project
-    const firstLine = new vscode.Range(0, 0, 0, 0);
+    // Find the best place for "Add Package" - the ItemGroup containing PackageReferences
+    let addPackageLine = 0;
+    let foundItemGroup = false;
+
+    // Simple heuristic: find first PackageReference and look backwards for ItemGroup
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].includes("<PackageReference")) {
+        // Found a package, search backwards for ItemGroup
+        for (let j = i; j >= 0; j--) {
+          if (lines[j].includes("<ItemGroup")) {
+            addPackageLine = j;
+            foundItemGroup = true;
+            break;
+          }
+        }
+        if (!foundItemGroup) {
+          // If no ItemGroup found immediately before (unlikely in valid csproj but possible), use the package line
+          addPackageLine = i;
+        }
+        break;
+      }
+    }
+
+    // Add "Add Package" CodeLens
+    const addPackageRange = new vscode.Range(
+      addPackageLine,
+      0,
+      addPackageLine,
+      0,
+    );
     codeLenses.push(
-      new vscode.CodeLens(firstLine, {
+      new vscode.CodeLens(addPackageRange, {
         title: "➕ Add Package",
         command: "yet-another-nuget-package-manager.searchAndAddPackage",
         arguments: [document.uri.fsPath],
@@ -210,7 +238,7 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
 
     if (packagesWithUpdates.length > 0) {
       codeLenses.push(
-        new vscode.CodeLens(firstLine, {
+        new vscode.CodeLens(addPackageRange, {
           title: `⬆️ Upgrade All (${packagesWithUpdates.length})`,
           command: "yet-another-nuget-package-manager.upgradeAllPackages",
           arguments: [document.uri.fsPath],
@@ -222,7 +250,7 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
     for (const pkg of packages) {
       const range = new vscode.Range(pkg.line, 0, pkg.line, 0);
 
-      // Check for vulnerabilities first
+      // Check for vulnerabilities - Restore separate CodeLens
       if (pkg.vulnerabilities.length > 0) {
         const highestSeverity = Math.max(
           ...pkg.vulnerabilities.map((v) => v.severity),
@@ -244,143 +272,20 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
         pkg.latestVersion &&
         !isVersionUpToDate(pkg.currentVersion, pkg.latestVersion);
 
-      // Only show pre-release if it's NEWER than the latest stable version
-      // Compare pre-release version to latest stable - if pre-release > stable, show it
+      // Use the helper to check if current version is prerelease
+      const isPrerelease = isPrereleaseVersion(pkg.currentVersion);
+
+      // Only show pre-release update if:
+      // 1. We are ALREADY on a pre-release version
+      // 2. A newer pre-release exists (newer than stable)
       const hasPrereleaseUpdate =
+        isPrerelease && // Key constraint: Must be on pre-release to see pre-release updates
         pkg.latestPrereleaseVersion &&
         pkg.latestVersion &&
         pkg.latestPrereleaseVersion !== pkg.currentVersion &&
         compareVersions(pkg.latestPrereleaseVersion, pkg.latestVersion) > 0;
 
-      if (hasStableUpdate && !pkg.isUpdating) {
-        // Update to stable version CodeLens
-        codeLenses.push(
-          new vscode.CodeLens(range, {
-            title: `⬆️ Update to ${pkg.latestVersion}`,
-            command: "yet-another-nuget-package-manager.updatePackageInline",
-            arguments: [
-              document.uri.fsPath,
-              pkg.packageName,
-              pkg.latestVersion,
-            ],
-            tooltip: `Update ${pkg.packageName} from ${pkg.currentVersion} to ${pkg.latestVersion}`,
-          }),
-        );
-
-        // Show pre-release update option only if it's newer than stable
-        if (hasPrereleaseUpdate) {
-          codeLenses.push(
-            new vscode.CodeLens(range, {
-              title: `🧪 Pre-release ${pkg.latestPrereleaseVersion}`,
-              command: "yet-another-nuget-package-manager.updatePackageInline",
-              arguments: [
-                document.uri.fsPath,
-                pkg.packageName,
-                pkg.latestPrereleaseVersion,
-              ],
-              tooltip: `Update ${pkg.packageName} to pre-release version ${pkg.latestPrereleaseVersion}`,
-            }),
-          );
-        }
-
-        // Select version CodeLens
-        codeLenses.push(
-          new vscode.CodeLens(range, {
-            title: `📋 Select version`,
-            command: "yet-another-nuget-package-manager.selectPackageVersion",
-            arguments: [
-              document.uri.fsPath,
-              pkg.packageName,
-              pkg.currentVersion,
-            ],
-            tooltip: `Choose a specific version for ${pkg.packageName}`,
-          }),
-        );
-
-        // View on NuGet.org CodeLens
-        codeLenses.push(
-          new vscode.CodeLens(range, {
-            title: `🔗 NuGet`,
-            command: "yet-another-nuget-package-manager.openNugetPage",
-            arguments: [pkg.packageName],
-            tooltip: `View ${pkg.packageName} on NuGet.org`,
-          }),
-        );
-
-        // Remove package CodeLens
-        codeLenses.push(
-          new vscode.CodeLens(range, {
-            title: `🗑️ Remove`,
-            command: "yet-another-nuget-package-manager.removePackageInline",
-            arguments: [document.uri.fsPath, pkg.packageName],
-            tooltip: `Remove ${pkg.packageName} from project`,
-          }),
-        );
-      } else if (
-        pkg.latestVersion &&
-        isVersionUpToDate(pkg.currentVersion, pkg.latestVersion) &&
-        !pkg.isUpdating
-      ) {
-        // Show "up to date" indicator for packages that are current
-        codeLenses.push(
-          new vscode.CodeLens(range, {
-            title: `✅ Latest`,
-            command: "",
-            tooltip: `${pkg.packageName} is up to date`,
-          }),
-        );
-
-        // Show pre-release update option only if it's newer than stable
-        if (hasPrereleaseUpdate) {
-          codeLenses.push(
-            new vscode.CodeLens(range, {
-              title: `🧪 Pre-release ${pkg.latestPrereleaseVersion}`,
-              command: "yet-another-nuget-package-manager.updatePackageInline",
-              arguments: [
-                document.uri.fsPath,
-                pkg.packageName,
-                pkg.latestPrereleaseVersion,
-              ],
-              tooltip: `Update ${pkg.packageName} to pre-release version ${pkg.latestPrereleaseVersion}`,
-            }),
-          );
-        }
-
-        // Select version CodeLens (even for up-to-date packages, allow downgrade)
-        codeLenses.push(
-          new vscode.CodeLens(range, {
-            title: `📋 Select version`,
-            command: "yet-another-nuget-package-manager.selectPackageVersion",
-            arguments: [
-              document.uri.fsPath,
-              pkg.packageName,
-              pkg.currentVersion,
-            ],
-            tooltip: `Choose a specific version for ${pkg.packageName}`,
-          }),
-        );
-
-        // View on NuGet.org CodeLens
-        codeLenses.push(
-          new vscode.CodeLens(range, {
-            title: `🔗 NuGet`,
-            command: "yet-another-nuget-package-manager.openNugetPage",
-            arguments: [pkg.packageName],
-            tooltip: `View ${pkg.packageName} on NuGet.org`,
-          }),
-        );
-
-        // Remove package CodeLens
-        codeLenses.push(
-          new vscode.CodeLens(range, {
-            title: `🗑️ Remove`,
-            command: "yet-another-nuget-package-manager.removePackageInline",
-            arguments: [document.uri.fsPath, pkg.packageName],
-            tooltip: `Remove ${pkg.packageName} from project`,
-          }),
-        );
-      } else if (pkg.isChecking) {
-        // Show loading indicator while checking
+      if (pkg.isChecking) {
         codeLenses.push(
           new vscode.CodeLens(range, {
             title: "⏳ Checking...",
@@ -389,12 +294,54 @@ class CsprojCodeLensProviderImpl implements vscode.CodeLensProvider {
           }),
         );
       } else if (pkg.isUpdating) {
-        // Show updating indicator
         codeLenses.push(
           new vscode.CodeLens(range, {
             title: "⏳ Updating...",
             command: "",
             tooltip: `Updating ${pkg.packageName}`,
+          }),
+        );
+      } else {
+        // Main Status CodeLens
+        let title = "";
+        let tooltip = "";
+        
+        // If versions failed to load (no latest version and not checking), show error state
+        if (!pkg.latestVersion && !pkg.isChecking) {
+             title = `⚠️ Version Check Failed`;
+             tooltip = `Failed to fetch versions for ${pkg.packageName}. Check package compatibility or internet connection.`;
+             // Add a non-functional CodeLens or one that just shows the error
+             codeLenses.push(
+                new vscode.CodeLens(range, {
+                    title: title,
+                    command: "", // No command
+                    tooltip: tooltip,
+                }),
+            );
+            continue;
+        }
+
+        if (hasStableUpdate) {
+            title = `⬆️ Update to ${pkg.latestVersion}`;
+            tooltip = `Update available: ${pkg.latestVersion}`;
+        } else if (hasPrereleaseUpdate) {
+            title = `⬆️ Update to ${pkg.latestPrereleaseVersion} (Pre-Release)`;
+            tooltip = `Pre-release update available: ${pkg.latestPrereleaseVersion}`;
+        } else {
+             title = isPrerelease ? `✅ Latest Pre-Release` : `✅ Latest Stable`;
+             tooltip = `${pkg.packageName} is up to date`;
+        }
+
+        codeLenses.push(
+          new vscode.CodeLens(range, {
+            title: title,
+            command: "yet-another-nuget-package-manager.selectPackageVersion",
+            arguments: [
+              document.uri.fsPath,
+              pkg.packageName,
+              pkg.currentVersion,
+            ],
+            tooltip: tooltip,
           }),
         );
       }
@@ -592,43 +539,164 @@ async function handleSelectPackageVersion(
 ): Promise<void> {
   try {
     // Show loading quick pick
-    const versions = await vscode.window.withProgress(
+    const data = await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
         title: `Loading versions for ${packageName}...`,
         cancellable: false,
       },
       async () => {
-        return await getPackageVersions(packageName);
+        const [versions, searchResults] = await Promise.all([
+          getPackageVersions(packageName),
+          searchPackages(packageName, 1, true),
+        ]);
+
+        const allVulnerabilities = await getVulnerabilities(
+          packageName,
+          "0.0.0",
+        );
+
+        return { versions, searchResult: searchResults[0], allVulnerabilities };
       },
     );
+
+    const { versions } = data;
+
+    // Optimization: we can just check the top 50 versions.
 
     if (versions.length === 0) {
       vscode.window.showWarningMessage(`No versions found for ${packageName}`);
       return;
     }
 
-    // Create quick pick items with prerelease indicators
-    const items: vscode.QuickPickItem[] = versions
-      .slice(0, 50)
-      .map((version) => ({
-        label: version,
-        description:
-          version === currentVersion
-            ? "(current)"
-            : isPrereleaseVersion(version)
-              ? "(prerelease)"
-              : "",
-        picked: version === currentVersion,
-      }));
+    // Helper to get download count - Removed unused function
+    // const getDownloads = ...
 
-    const selected = await vscode.window.showQuickPick(items, {
-      title: `Select version for ${packageName}`,
-      placeHolder: `Current version: ${currentVersion}`,
+    const latestStable = versions.find((v) => !isPrereleaseVersion(v));
+    const latestPre = versions.find((v) => isPrereleaseVersion(v));
+    const isCurrentPre = isPrereleaseVersion(currentVersion);
+
+    const items: vscode.QuickPickItem[] = [];
+
+    // 1. Latest Stable Option
+    if (latestStable && latestStable !== currentVersion) {
+      items.push({
+        label: `$(rocket) Update to Latest Stable`,
+        description: latestStable,
+        detail: `Upgrade to version ${latestStable}`,
+        picked: false,
+      });
+    }
+
+    // 2. Latest Pre-release Option (if newer)
+    if (latestPre && latestPre !== currentVersion) {
+      // Only show if newer than latest stable or we are currently on pre-release
+      if (
+        !latestStable ||
+        compareVersions(latestPre, latestStable) > 0 ||
+        isCurrentPre
+      ) {
+        items.push({
+          label: `$(beaker) Update to Latest Pre-Release`,
+          description: latestPre,
+          detail: `Upgrade to pre-release ${latestPre}`,
+          picked: false,
+        });
+      }
+    }
+
+    // 3. Remove Option
+    items.push({
+      label: `$(trash) Remove Package`,
+      description: "",
+      detail: `Remove ${packageName} from this project`,
     });
 
-    if (selected && selected.label !== currentVersion) {
-      await handleUpdatePackageInline(projectPath, packageName, selected.label);
+    items.push({
+      label: "",
+      kind: vscode.QuickPickItemKind.Separator,
+    });
+
+    const displayVersions = versions.slice(0, 50);
+    // Ensure current version is in the list
+    if (
+      !displayVersions.includes(currentVersion) &&
+      versions.includes(currentVersion)
+    ) {
+      displayVersions.push(currentVersion);
+      displayVersions.sort((a, b) => compareVersions(b, a));
+    }
+
+    for (const v of displayVersions) {
+      const isSelected = v === currentVersion;
+      const isPre = isPrereleaseVersion(v);
+      
+      let icon = isSelected ? "$(check) " : "";
+      let description = "";
+
+      if (isSelected) {description = "(Current) ";}
+      if (isPre) {description += "(Pre-Release)";}
+
+      const vulns = await getVulnerabilities(packageName, v);
+      const isVulnerable = vulns.length > 0;
+
+      let label = `${icon}${v}`;
+      let detail = "";
+      
+      if (isVulnerable) {
+        // Warning icon and count moved to detail (under version)
+        const highestSeverity = getSeverityLabel(Math.max(...vulns.map((x) => x.severity))).toLowerCase();
+        detail = `$(alert) ${vulns.length} Vulnerabilit${vulns.length > 1 ? "ies" : "y"} (${highestSeverity})`;
+      }
+
+      items.push({
+        label: label,
+        description: description.trim(),
+        detail: detail.trim(),
+        picked: isSelected,
+      });
+    }
+
+    const selected = await vscode.window.showQuickPick(items, {
+      title: `Manage ${packageName} (${currentVersion})`,
+      placeHolder: "Select an action or version",
+    });
+
+    if (!selected) {return;}
+
+    if (selected.label.includes("Remove Package")) {
+      await handleRemovePackageInline(projectPath, packageName);
+      return;
+    }
+
+    // Extract version from description or label
+    // If it's one of the "Update to..." items, description is the version
+    // If it's a version item, the label contains the version (stripped of icons)
+    let targetVersion = "";
+
+    if (selected.label.includes("Update to")) {
+      targetVersion = selected.description || "";
+    } else {
+      // Strip icons and spacing
+      // Label format: "$(icon) 1.2.3"
+      // We can just look up the version in the list that matches
+      // Or cleaner: store version in the item? QuickPickItem doesn't have custom data.
+      // We'll parse it.
+      // The regex above looks for version at end of string.
+      // Actually, let's just find the item in our list.
+      const versionItem = displayVersions.find((v) =>
+        selected.label.includes(v),
+      );
+      if (versionItem) {
+        targetVersion = versionItem;
+      } else {
+        // Fallback
+        targetVersion = selected.label.replace(/\$\([a-z-]+\)/g, "").trim();
+      }
+    }
+
+    if (targetVersion && targetVersion !== currentVersion) {
+      await handleUpdatePackageInline(projectPath, packageName, targetVersion);
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -678,15 +746,16 @@ async function handleSearchAndAddPackage(projectPath: string): Promise<void> {
 
         // Only update if this is still the current search
         if (value === currentSearch) {
-          quickPick.items = results.map((pkg) => ({
-            label: pkg.id,
-            description: pkg.version,
-            detail: pkg.description
-              ? pkg.description.substring(0, 100) +
-                (pkg.description.length > 100 ? "..." : "")
-              : "",
-            alwaysShow: true,
-          }));
+          quickPick.items = results.map((pkg) => {
+            return {
+              label: pkg.id,
+              description: pkg.version,
+              detail: pkg.description
+                ? pkg.description.substring(0, 200) + (pkg.description.length > 200 ? "..." : "")
+                : "",
+              alwaysShow: true,
+            };
+          });
           quickPick.busy = false;
         }
       } catch (error) {
@@ -979,6 +1048,22 @@ let codeLensProvider: CsprojCodeLensProviderImpl | null = null;
  * Register all .csproj CodeLens features
  */
 export function registerCsprojFeatures(context: vscode.ExtensionContext): void {
+  // Register Hover Provider
+  context.subscriptions.push(
+    vscode.languages.registerHoverProvider(
+      { scheme: "file", language: "xml", pattern: "**/*.csproj" },
+      new NuGetHoverProvider(),
+    ),
+  );
+
+  // Register Document Link Provider
+  context.subscriptions.push(
+    vscode.languages.registerDocumentLinkProvider(
+      { scheme: "file", language: "xml", pattern: "**/*.csproj" },
+      new NuGetLinkProvider(),
+    ),
+  );
+
   // Register CodeLens provider
   codeLensProvider = new CsprojCodeLensProviderImpl(); // Register the provider
   context.subscriptions.push(
@@ -1090,6 +1175,121 @@ export function registerCsprojFeatures(context: vscode.ExtensionContext): void {
 /**
  * Clear all caches (useful for manual refresh)
  */
+
+/**
+ * Hover provider for NuGet package references
+ */
+class NuGetHoverProvider implements vscode.HoverProvider {
+  async provideHover(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+  ): Promise<vscode.Hover | null> {
+    const range = document.getWordRangeAtPosition(
+      position,
+      /Include\s*=\s*["']([^"']+)["']/,
+    );
+    if (!range) {
+      return null;
+    }
+
+    const line = document.lineAt(position.line);
+    const text = line.text;
+
+    // Check if we're hovering over the package ID part
+    const match = /Include\s*=\s*["']([^"']+)["']/.exec(text);
+    if (!match) {
+      return null;
+    }
+
+    // Ensure the hover position is within the package ID string
+    const matchIndex = match.index + match[0].indexOf(match[1]);
+    const startIndex = matchIndex;
+    const endIndex = matchIndex + match[1].length;
+
+    if (position.character < startIndex || position.character > endIndex) {
+      return null;
+    }
+
+    const packageId = match[1];
+
+    // Fetch metadata
+    const metadata = await getPackageMetadata(packageId);
+    if (!metadata) {
+      return null;
+    }
+
+    const content = new vscode.MarkdownString();
+    content.isTrusted = true;
+
+    content.appendMarkdown(`### ${metadata.id} ${metadata.version}\n\n`);
+    if (metadata.description) {
+      content.appendMarkdown(`${metadata.description}\n\n`);
+    }
+
+    content.appendMarkdown(`---\n\n`);
+
+    if (metadata.authors.length > 0) {
+      content.appendMarkdown(`**Authors:** ${metadata.authors.join(", ")}\n\n`);
+    }
+
+    if (metadata.totalDownloads !== undefined) {
+      content.appendMarkdown(
+        `**Downloads:** ${metadata.totalDownloads.toLocaleString()}\n\n`,
+      );
+    }
+
+    const links: string[] = [];
+    if (metadata.projectUrl) {
+      links.push(`[Project Site](${metadata.projectUrl})`);
+    }
+    if (metadata.licenseUrl) {
+      links.push(`[License](${metadata.licenseUrl})`);
+    }
+    links.push(`[NuGet.org](https://www.nuget.org/packages/${packageId})`);
+
+    content.appendMarkdown(links.join(" | "));
+
+    return new vscode.Hover(content);
+  }
+}
+
+/**
+ * Link provider for NuGet package references (Ctrl+Click)
+ */
+class NuGetLinkProvider implements vscode.DocumentLinkProvider {
+  provideDocumentLinks(
+    document: vscode.TextDocument,
+  ): vscode.ProviderResult<vscode.DocumentLink[]> {
+    const links: vscode.DocumentLink[] = [];
+    const text = document.getText();
+
+    // Find all PackageReference includes
+    const regex = /Include\s*=\s*["']([^"']+)["']/g;
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+      const packageId = match[1];
+      // Calculate range for the package ID
+      const startPos = document.positionAt(
+        match.index + match[0].indexOf(packageId),
+      );
+      const endPos = document.positionAt(
+        match.index + match[0].indexOf(packageId) + packageId.length,
+      );
+      const range = new vscode.Range(startPos, endPos);
+
+      const link = new vscode.DocumentLink(
+        range,
+        vscode.Uri.parse(`https://www.nuget.org/packages/${packageId}`),
+      );
+      link.tooltip = `Open ${packageId} on NuGet.org`;
+      links.push(link);
+    }
+
+    return links;
+  }
+}
+
 export function clearAllCaches(): void {
   documentPackageCache.clear();
   if (codeLensProvider) {

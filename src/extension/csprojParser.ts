@@ -4,10 +4,17 @@
  */
 
 import * as fs from "fs";
-import * as xml2js from "xml2js";
+import { XMLParser } from "fast-xml-parser";
 import { PackageReference, ParseCsprojResult } from "../types";
 
-const xmlParser = new xml2js.Parser();
+const xmlParser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: "@_",
+  // Ensure arrays for ItemGroup and PackageReference to simplify traversal
+  isArray: (name) => {
+    return name === "ItemGroup" || name === "PackageReference";
+  },
+});
 
 /**
  * Parse a .csproj file and extract package references
@@ -22,26 +29,24 @@ export async function parseCsproj(
     const fileContent = fs.readFileSync(projectPath, "utf-8");
 
     // Parse XML
-    const parsedXml = await xmlParser.parseStringPromise(fileContent);
+    const parsedXml = xmlParser.parse(fileContent);
 
     // Extract PackageReference elements from the project
     const packages: PackageReference[] = [];
 
     // Navigate through the XML structure: Project -> ItemGroup -> PackageReference
     if (parsedXml.Project && parsedXml.Project.ItemGroup) {
-      const itemGroups = Array.isArray(parsedXml.Project.ItemGroup)
-        ? parsedXml.Project.ItemGroup
-        : [parsedXml.Project.ItemGroup];
+      // ItemGroup is guaranteed to be an array due to isArray option
+      const itemGroups = parsedXml.Project.ItemGroup;
 
       for (const itemGroup of itemGroups) {
         if (itemGroup.PackageReference) {
-          const packageRefs = Array.isArray(itemGroup.PackageReference)
-            ? itemGroup.PackageReference
-            : [itemGroup.PackageReference];
+          // PackageReference is guaranteed to be an array due to isArray option
+          const packageRefs = itemGroup.PackageReference;
 
           for (const ref of packageRefs) {
-            const name = ref.$.Include;
-            const currentVersion = ref.$.Version;
+            const name = ref["@_Include"];
+            const currentVersion = ref["@_Version"];
 
             if (name && currentVersion) {
               packages.push({

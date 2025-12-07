@@ -76,6 +76,7 @@ export interface NuGetSearchResult {
   licenseUrl?: string;
   licenseExpression?: string;
   tags?: string[];
+  published?: string;
 }
 
 /**
@@ -132,7 +133,11 @@ export async function searchPackages(
       id: item.id,
       version: item.version,
       description: item.description || "",
-      authors: item.authors || [],
+      authors: Array.isArray(item.authors)
+        ? item.authors
+        : typeof item.authors === "string"
+          ? [item.authors]
+          : [],
       totalDownloads: item.totalDownloads || 0,
       verified: item.verified || false,
       iconUrl: item.iconUrl,
@@ -141,6 +146,7 @@ export async function searchPackages(
       licenseUrl: item.licenseUrl,
       licenseExpression: item.licenseExpression,
       tags: item.tags,
+      published: undefined, // Search API doesn't return published date directly usually, but we'll add the field to interface
     }));
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -245,6 +251,17 @@ export async function getPackageMetadata(
       if (searchMatch) {
         metadata.totalDownloads = searchMatch.totalDownloads;
         metadata.verified = searchMatch.verified;
+        
+        // Fallback for description if missing in catalog (common for older packages)
+        if (!metadata.description && searchMatch.description) {
+            metadata.description = searchMatch.description;
+        }
+
+        // Fallback for authors if missing
+        if ((!metadata.authors || metadata.authors.length === 0) && searchMatch.authors && searchMatch.authors.length > 0) {
+            metadata.authors = searchMatch.authors;
+        }
+
         if (!metadata.iconUrl) {
           metadata.iconUrl = searchMatch.iconUrl;
         }
@@ -256,6 +273,10 @@ export async function getPackageMetadata(
         }
         if (!metadata.tags || metadata.tags.length === 0) {
           metadata.tags = searchMatch.tags;
+        }
+        // Also ensure published date is available if missing (though search usually doesn't have better date)
+        if (!metadata.publishedDate && searchMatch.published) {
+             metadata.publishedDate = searchMatch.published;
         }
       }
     } catch {
@@ -365,12 +386,10 @@ function parseVersion(version: string): {
   parts: number[];
   prerelease: string | null;
 } {
-  // Split on hyphen to separate version from prerelease tag
   const [versionPart, ...prereleaseParts] = version.split("-");
   const prerelease =
     prereleaseParts.length > 0 ? prereleaseParts.join("-") : null;
 
-  // Parse numeric parts, handling non-numeric segments
   const parts = versionPart.split(".").map((p) => {
     const num = parseInt(p, 10);
     return isNaN(num) ? 0 : num;
@@ -388,7 +407,6 @@ export function compareVersions(a: string, b: string): number {
   const parsedA = parseVersion(a);
   const parsedB = parseVersion(b);
 
-  // Compare numeric parts first
   const maxLength = Math.max(parsedA.parts.length, parsedB.parts.length);
   for (let i = 0; i < maxLength; i++) {
     const partA = parsedA.parts[i] || 0;
@@ -695,9 +713,6 @@ export async function getVulnerabilities(
  * Simplified implementation for common range patterns
  */
 function isVersionInRange(version: string, range: string): boolean {
-  // Parse range - NuGet uses interval notation: (, ), [, ]
-  // Examples: "(, 2.0.0)", "[1.0.0, 2.0.0)", "(1.0.0, )"
-
   const rangeMatch = range.match(/^([\[\(])([^,]*),\s*([^\]\)]*)([\]\)])$/);
   if (!rangeMatch) {
     return false;
@@ -707,7 +722,6 @@ function isVersionInRange(version: string, range: string): boolean {
   const minInclusive = minBracket === "[";
   const maxInclusive = maxBracket === "]";
 
-  // Check minimum version
   if (minVersion.trim()) {
     const cmp = compareVersions(version, minVersion.trim());
     if (minInclusive ? cmp < 0 : cmp <= 0) {
@@ -715,7 +729,6 @@ function isVersionInRange(version: string, range: string): boolean {
     }
   }
 
-  // Check maximum version
   if (maxVersion.trim()) {
     const cmp = compareVersions(version, maxVersion.trim());
     if (maxInclusive ? cmp > 0 : cmp >= 0) {
