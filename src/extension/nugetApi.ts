@@ -27,6 +27,9 @@ const versionCache = new Map<string, CacheEntry>();
 // In-memory cache for package metadata
 const metadataCache = new Map<string, MetadataCacheEntry>();
 
+// Pending requests map for request coalescing
+const pendingRequests = new Map<string, Promise<string[]>>();
+
 // TTL for cache entries (1 hour in milliseconds)
 const CACHE_TTL_MS = 60 * 60 * 1000;
 
@@ -437,27 +440,44 @@ export async function getPackageVersions(packageId: string): Promise<string[]> {
   try {
     // Fetch from NuGet API
     const url = `${NUGET_API_BASE}/${packageId.toLowerCase()}/index.json`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    
+    // Check for pending request
+    const pending = pendingRequests.get(packageId.toLowerCase());
+    if (pending) {
+      return pending;
     }
 
-    const data = (await response.json()) as { versions?: string[] };
-    const versions = data.versions || [];
+    const fetchPromise = (async () => {
+      try {
+        const response = await fetch(url);
 
-    // Sort versions in descending order (latest stable first, then prereleases)
-    versions.sort((a, b) => {
-      return compareVersions(b, a); // Descending order
-    });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
-    // Cache the result
-    versionCache.set(packageId.toLowerCase(), {
-      versions,
-      timestamp: Date.now(),
-    });
+        const data = (await response.json()) as { versions?: string[] };
+        const versions = data.versions || [];
 
-    return versions;
+        // Sort versions in descending order (latest stable first, then prereleases)
+        versions.sort((a, b) => {
+          return compareVersions(b, a); // Descending order
+        });
+
+        // Cache the result
+        versionCache.set(packageId.toLowerCase(), {
+          versions,
+          timestamp: Date.now(),
+        });
+
+        return versions;
+      } finally {
+        // Remove from pending requests when done (success or failure)
+        pendingRequests.delete(packageId.toLowerCase());
+      }
+    })();
+
+    pendingRequests.set(packageId.toLowerCase(), fetchPromise);
+    return fetchPromise;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Failed to fetch versions for ${packageId}: ${errorMessage}`);

@@ -79,12 +79,28 @@ function parsePackageReferences(
   const lines = text.split("\n");
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
     const line = lines[lineIndex];
-    const match =
-      /<PackageReference\s+Include="([^"]+)"\s+Version="([^"]+)"/i.exec(line);
+    
+    // Check if line contains PackageReference
+    if (!line.includes("<PackageReference")) {
+      continue;
+    }
 
-    if (match) {
-      const packageName = match[1];
-      const currentVersion = match[2];
+    // Robust parsing: Match the tag first, then extract attributes
+    // This handles different attribute orders and single/double quotes
+    const tagMatch = /<PackageReference\s+([^>]+?)\/?>/i.exec(line);
+    if (!tagMatch) {
+      continue;
+    }
+
+    const attributes = tagMatch[1];
+    
+    // Extract Include and Version using flexible regex
+    const includeMatch = /Include\s*=\s*["']([^"']+)["']/i.exec(attributes);
+    const versionMatch = /Version\s*=\s*["']([^"']+)["']/i.exec(attributes);
+
+    if (includeMatch && versionMatch) {
+      const packageName = includeMatch[1];
+      const currentVersion = versionMatch[1];
       const lineEndPosition = line.length;
 
       packages.push({
@@ -967,12 +983,19 @@ let codeLensProvider: CsprojCodeLensProviderImpl | null = null;
  */
 export function registerCsprojFeatures(context: vscode.ExtensionContext): void {
   // Register CodeLens provider
-  codeLensProvider = new CsprojCodeLensProviderImpl();
+  codeLensProvider = new CsprojCodeLensProviderImpl(); // Register the provider
   context.subscriptions.push(
     vscode.languages.registerCodeLensProvider(
-      { pattern: "**/*.csproj", scheme: "file" },
+      { scheme: "file", language: "xml", pattern: "**/*.csproj" },
       codeLensProvider,
     ),
+  );
+  
+  // Clean up cache when documents are closed to prevent memory leaks
+  context.subscriptions.push(
+    vscode.workspace.onDidCloseTextDocument((doc) => {
+      documentPackageCache.delete(doc.uri.toString());
+    }),
   );
 
   // Register commands
