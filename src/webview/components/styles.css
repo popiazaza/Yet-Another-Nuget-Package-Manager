@@ -404,7 +404,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .details-panel-header-unified {
@@ -504,8 +504,6 @@ body {
 }
 
 .details-panel-body {
-  flex: 1;
-  overflow-y: auto;
   padding: 0;
 }
 
@@ -531,6 +529,19 @@ body {
   padding: 16px 20px;
   border-top: 1px solid var(--vscode-list-hoverBackground);
   flex-shrink: 0;
+}
+
+.details-panel-actions-inline {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.meta-separator {
+  color: var(--vscode-editorLineNumber-foreground);
+  margin: 0 2px;
+  opacity: 0.5;
 }
 
 .details-panel-links {
@@ -1989,7 +2000,7 @@ body {
 }
 
 .codicon-verified-filled::before {
-  content: "✓";
+  content: "✅";
 }
 
 .codicon-search::before {
